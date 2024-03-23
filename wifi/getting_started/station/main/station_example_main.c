@@ -24,9 +24,9 @@
    If you'd rather not, just change the below entries to strings with
    the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-#define EXAMPLE_ESP_WIFI_SSID      CONFIG_ESP_WIFI_SSID
-#define EXAMPLE_ESP_WIFI_PASS      CONFIG_ESP_WIFI_PASSWORD
-#define EXAMPLE_ESP_MAXIMUM_RETRY  CONFIG_ESP_MAXIMUM_RETRY
+#define EXAMPLE_ESP_WIFI_SSID      "Own SSID"
+#define EXAMPLE_ESP_WIFI_PASS      "OWN PASSWORD"
+#define EXAMPLE_ESP_MAXIMUM_RETRY  10
 
 #if CONFIG_ESP_WPA3_SAE_PWE_HUNT_AND_PECK
 #define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_HUNT_AND_PECK
@@ -126,7 +126,7 @@ void wifi_init_sta(void)
              * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
              * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
              */
-            .threshold.authmode = ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD,
+            .threshold.authmode = ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD, // maybe WIFI_AUTH_WPA2_PSK. if not working, modify with that hard code
             .sae_pwe_h2e = ESP_WIFI_SAE_MODE,
             .sae_h2e_identifier = EXAMPLE_H2E_IDENTIFIER,
         },
