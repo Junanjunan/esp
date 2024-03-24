@@ -1,0 +1,15 @@
+dependencies:
+  idf:
+    component_hash: null
+    source:
+      type: idf
+    version: 5.2.1
+  protocol_examples_common:
+    component_hash: null
+    source:
+      path: /home/taltal/git/esp/esp-idf/examples/common_components/protocol_examples_common
+      type: local
+    version: '*'
+manifest_hash: 9d32e44d2fe0be5cacbd94827a3f0e2456c3852d6c4ebb943a75fce9500fcc3a
+target: esp32
+version: 1.0.0
