@@ -1,3 +1,5 @@
 esp-idf/
 build/
 .vscode/
+examples/esp_idf_esp32_posts/
+examples/esp-idf-template/
