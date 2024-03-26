@@ -26,9 +26,9 @@
 #define SPP_TAG "SPP_ACCEPTOR_DEMO"
 #define SPP_SERVER_NAME "SPP_SERVER"
 #define EXAMPLE_DEVICE_NAME "ESP_SPP_ACCEPTOR"
-#define SPP_SHOW_DATA 0
-#define SPP_SHOW_SPEED 1
-#define SPP_SHOW_MODE SPP_SHOW_SPEED    /*Choose show mode: show data or speed*/
+#define SPP_SHOW_DATA 1
+#define SPP_SHOW_SPEED 0
+#define SPP_SHOW_MODE SPP_SHOW_DATA    /*Choose show mode: show data or speed*/
 
 static const esp_spp_mode_t esp_spp_mode = ESP_SPP_MODE_CB;
 static const bool esp_spp_enable_l2cap_ertm = true;
@@ -110,7 +110,7 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
         ESP_LOGI(SPP_TAG, "ESP_SPP_DATA_IND_EVT len:%d handle:%"PRIu32,
                  param->data_ind.len, param->data_ind.handle);
         if (param->data_ind.len < 128) {
-            esp_log_buffer_hex("", param->data_ind.data, param->data_ind.len);
+            esp_log_buffer_char("", param->data_ind.data, param->data_ind.len);
         }
 #else
         gettimeofday(&time_new, NULL);
