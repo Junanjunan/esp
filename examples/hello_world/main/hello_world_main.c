@@ -13,11 +13,18 @@
 #include "esp_flash.h"
 #include "esp_system.h"
 
+const char *pcTextForTask1 = "vTask1";
+const char *pcTextForTask2 = "vTask2";
+
 void vTask1(void *pvParameters)
 {
-    while (1) { // or for(;;)
-        printf("vTask1");
-        vTaskDelay(3000 / portTICK_PERIOD_MS);
+    char *pcTaskName;
+    pcTaskName = (char *)pvParameters;
+
+    for(;;)
+    {
+        printf("%s\n", pcTaskName);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }
 
@@ -27,10 +34,12 @@ void app_main(void)
 
     printf("Hello world!\n");
 
-    xTaskCreate(vTask1, "Task 1", 1024, NULL, 3, NULL);    
+    xTaskCreate(vTask1, "Task 1", 1024, (void*)pcTextForTask1, 3, NULL);
+    xTaskCreate(vTask1, "Task 2", 1024, (void*)pcTextForTask2, 3, NULL);
 
     while (1) {
-        printf("print! in %d seconds...\n", i++);
+        printf("print! in %d seconds...\n", i);
+        i++;
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
