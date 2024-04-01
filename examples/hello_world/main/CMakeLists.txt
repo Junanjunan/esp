@@ -1,2 +1,2 @@
-idf_component_register(SRCS "hello_world_main.c"
+idf_component_register(SRCS "xQueue_01.c"
                     INCLUDE_DIRS "")
