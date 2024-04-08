@@ -91,5 +91,8 @@ void app_main(void)
             /* Reset count_i to wait for the next press */
             count_i = 0;
         }
+
+        /* Delay to ensure the IDLE task gets CPU time */
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
