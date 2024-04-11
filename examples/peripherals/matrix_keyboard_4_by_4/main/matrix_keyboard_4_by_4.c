@@ -28,7 +28,7 @@ void app_main(void) {
             gpio_set_level(row_pins[row], 0);
 
             for (int col = 0; col < COL_NUM; ++col) {
-                if (gpio_get_level(col_pins[col]) == 0) {
+                if (gpio_get_level(col_pins[col]) == 0) {   // Button pressed, level is 0 because of pull-up resistor
                     printf("Button pressed at row %d, column %d\n", row, col);
                     // Handle button press
                 }
