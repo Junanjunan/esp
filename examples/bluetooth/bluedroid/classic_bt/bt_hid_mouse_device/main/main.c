@@ -461,6 +461,55 @@ void app_main(void)
 
     ESP_LOGI(TAG, "starting hid device");
     esp_bt_hid_device_init();
+    /*
+        esp-idf > components > bt > host > bluedroid > api > esp_hidd_api.c
+
+        esp_err_t esp_bt_hid_device_init(void)
+        {
+            ESP_BLUEDROID_STATUS_CHECK(ESP_BLUEDROID_STATUS_ENABLED);
+
+            btc_msg_t msg;
+            msg.sig = BTC_SIG_API_CALL;
+            msg.pid = BTC_PID_HD;
+            msg.act = BTC_HD_INIT_EVT;
+
+            // Switch to BTC context
+            bt_status_t stat = btc_transfer_context(&msg, NULL, 0, NULL, NULL);
+            return (stat == BT_STATUS_SUCCESS) ? ESP_OK : ESP_FAIL;
+        }
+
+        - Description of ChatGPT -
+        Clarifying the Role of BTC
+        The Bluetooth Transport Controller (BTC) layer in the Bluedroid stack of ESP-IDF is responsible
+        for managing the communication between the high-level application layer and the lower-level Bluetooth stack.
+        It essentially acts as a mediator that facilitates the processing of API calls, events, and data
+        related to Bluetooth operations, ensuring that these operations are executed in the appropriate context.
+
+        ESP_BLUEDROID_STATUS_CHECK(ESP_BLUEDROID_STATUS_ENABLED):
+        This checks that the Bluedroid stack is enabled, which is crucial before attempting to initialize any Bluetooth profile, including HID.
+
+        Preparing a Message for the BTC Layer:
+        A btc_msg_t structure is prepared with details about the API call to be made:
+        sig (signal): Indicates that this is an API call (BTC_SIG_API_CALL).
+        pid (profile ID): Identifies the profile related to this API call, here being HID Device (BTC_PID_HD).
+        act (action): Specifies the action to be taken, in this case, initiating the HID device profile (BTC_HD_INIT_EVT).
+
+        btc_transfer_context(&msg, NULL, 0, NULL, NULL):
+        This function call is crucial as it sends the prepared message to the BTC layer, enabling the execution of the HID device initialization in the correct context.
+        The function ensures that Bluetooth API calls are executed safely and efficiently within the multi-threaded environment of the ESP-IDF framework.
+        The additional parameters (NULL, 0, NULL, NULL) are placeholders for potential data transfer or callback information related to the API call but are not used in this particular call.
+
+        Return Statement:
+        The function concludes by evaluating the result of the btc_transfer_context call. If the operation was successful (BT_STATUS_SUCCESS),
+        it returns ESP_OK; otherwise, it returns ESP_FAIL, indicating a failure in the HID device profile initialization process.
+
+        Conclusion with Accurate Understanding
+        With the corrected understanding that BTC refers to the Bluetooth Transport Controller layer within the Bluedroid stack,
+        the function esp_bt_hid_device_init is accurately described as initiating the Bluetooth HID device profile within an ESP32 device using ESP-IDF.
+        This involves preparing and sending a specific message to the BTC layer to manage the HID profile initialization,
+        ensuring that the device can start functioning as a Bluetooth HID device, such as a keyboard or mouse.
+        This process is fundamental for leveraging Bluetooth HID capabilities in ESP32-based applications.
+    */
 
 #if (CONFIG_EXAMPLE_SSP_ENABLED == true)
     /* Set default parameters for Secure Simple Pairing */
