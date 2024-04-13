@@ -14,8 +14,22 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 
+#include "driver/gpio.h"
+
 #define REPORT_PROTOCOL_KEYBOARD_REPORT_SIZE    (8)
 #define REPORT_BUFFER_SIZE                      REPORT_PROTOCOL_KEYBOARD_REPORT_SIZE
+
+#define ROW_NUM 2
+#define COL_NUM 2
+
+int row_pins[ROW_NUM] = {18, 19};
+int col_pins[COL_NUM] = {32, 33};
+
+// Define a 2x2 array corresponding to the matrix layout with HID keycodes
+uint8_t keycodes[ROW_NUM][COL_NUM] = {
+    {0x04, 0x05},  // HID keycodes for 'a', 'b'
+    {0x06, 0x07}   // HID keycodes for 'c', 'd'
+};
 
 typedef struct {
     esp_hidd_app_param_t app_param;
@@ -98,14 +112,54 @@ bool check_report_id_type(uint8_t report_id, uint8_t report_type)
     return ret;
 }
 
+void matrix_keypad_init(void) {
+    // Initialize row pins
+    for (int i = 0; i < ROW_NUM; ++i) {
+        gpio_set_direction(row_pins[i], GPIO_MODE_OUTPUT);
+    }
+
+    // Initialize column pins with pull-up resistors
+    for (int i = 0; i < COL_NUM; ++i) {
+        gpio_set_direction(col_pins[i], GPIO_MODE_INPUT);
+        gpio_set_pull_mode(col_pins[i], GPIO_PULLUP_ONLY);
+    }
+}
+
+uint8_t get_hid_keycode_from_matrix(uint8_t row, uint8_t col) {
+    // Check the bounds of row and col to ensure they are within the matrix size
+    if (row >= 2 || col >= 2) {
+        return 0x00;  // Return 0x00 for no event if out of bounds
+    }
+
+    return keycodes[row][col];  // Return the HID keycode from the matrix
+}
+
 // Function to send a keyboard report
 void send_keyboard_report(uint8_t keycode) {
     xSemaphoreTake(s_local_param.keyboard_mutex, portMAX_DELAY);
     memset(s_local_param.buffer, 0, REPORT_BUFFER_SIZE);
-    // No modifier, reserved byte is 0, only the 'a' key (usage ID 0x04)
-    s_local_param.buffer[2] = keycode; // Set 'a' key
+    s_local_param.buffer[2] = keycode; // Set keycode in the buffer from the matrix gpio input
     esp_bt_hid_device_send_report(ESP_HIDD_REPORT_TYPE_INTRDATA, 0, REPORT_BUFFER_SIZE, s_local_param.buffer);
     xSemaphoreGive(s_local_param.keyboard_mutex);
+}
+
+void matrix_keypad_scan(void) {
+    for (int row = 0; row < ROW_NUM; ++row) {
+        // Set current row low
+        gpio_set_level(row_pins[row], 0);
+
+        for (int col = 0; col < COL_NUM; ++col) {
+            if (gpio_get_level(col_pins[col]) == 0) {   // Button pressed, level is 0 because of pull-up resistor
+                uint8_t keycode = get_hid_keycode_from_matrix(row, col);
+                if (keycode != 0x00) {
+                    send_keyboard_report(keycode);
+                }
+            }
+        }
+
+        // Set current row high again
+        gpio_set_level(row_pins[row], 1);
+    }
 }
 
 // Task to simulate key press
@@ -113,10 +167,10 @@ void keyboard_task(void *pvParameters) {
     const char *TAG = "keyboard_task";
     ESP_LOGI(TAG, "Starting keyboard task");
     for (;;) {
-        send_keyboard_report(0x04); // 'a' key down
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+        matrix_keypad_scan();
+        vTaskDelay(10 / portTICK_PERIOD_MS);
         send_keyboard_report(0x00); // all keys released
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 
@@ -343,6 +397,7 @@ void app_main(void) {
     // Initialization code here...
     const char *TAG = "app_main";
     esp_err_t ret;
+    matrix_keypad_init();
 
     ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
