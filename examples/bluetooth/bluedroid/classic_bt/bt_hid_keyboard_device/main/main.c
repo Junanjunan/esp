@@ -31,6 +31,16 @@ uint8_t keycodes[ROW_NUM][COL_NUM] = {
     {0x06, 0x07}   // HID keycodes for 'c', 'd'
 };
 
+// Last recorded state of each key
+bool last_key_state[ROW_NUM][COL_NUM] = {0};
+
+// Time since the last repeat was sent for each key
+uint32_t last_key_time[ROW_NUM][COL_NUM] = {0}; 
+
+// Debounce time and repeat delay
+const uint32_t DEBOUNCE_TIME = 50; // 50 ms debounce period
+const uint32_t REPEAT_DELAY = 500; // 500 ms repeat delay
+
 typedef struct {
     esp_hidd_app_param_t app_param;
     esp_hidd_qos_param_t both_qos;
@@ -143,18 +153,43 @@ void send_keyboard_report(uint8_t keycode) {
     xSemaphoreGive(s_local_param.keyboard_mutex);
 }
 
+void send_report_with_delay(bool is_key_pressed, int row, int col, uint32_t current_time) {
+    if (is_key_pressed)
+    {
+        if (!last_key_state[row][col]) 
+        {
+            if (current_time - last_key_time[row][col] > DEBOUNCE_TIME) {
+            last_key_state[row][col] = true;
+            last_key_time[row][col] = current_time;
+            send_keyboard_report(keycodes[row][col]);  // Initial key press
+            }
+        }
+        else
+        {
+            if (current_time - last_key_time[row][col] > REPEAT_DELAY) {
+                last_key_time[row][col] = current_time;
+                send_keyboard_report(keycodes[row][col]);  // Repeat key press
+            }
+        }
+    }
+    else
+    {
+        if (last_key_state[row][col]) {
+            last_key_state[row][col] = false;
+            send_keyboard_report(0x00);  // Key release
+        }
+    }
+}
+
 void matrix_keypad_scan(void) {
+    uint32_t current_time = xTaskGetTickCount() * portTICK_PERIOD_MS;  // Get the current tick count in ms
     for (int row = 0; row < ROW_NUM; ++row) {
         // Set current row low
         gpio_set_level(row_pins[row], 0);
 
         for (int col = 0; col < COL_NUM; ++col) {
-            if (gpio_get_level(col_pins[col]) == 0) {   // Button pressed, level is 0 because of pull-up resistor
-                uint8_t keycode = get_hid_keycode_from_matrix(row, col);
-                if (keycode != 0x00) {
-                    send_keyboard_report(keycode);
-                }
-            }
+            bool is_key_pressed = (gpio_get_level(col_pins[col]) == 0);  // Read the current key state (pressed is low)
+            send_report_with_delay(is_key_pressed, row, col, current_time);
         }
 
         // Set current row high again
@@ -168,8 +203,6 @@ void keyboard_task(void *pvParameters) {
     ESP_LOGI(TAG, "Starting keyboard task");
     for (;;) {
         matrix_keypad_scan();
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-        send_keyboard_report(0x00); // all keys released
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
