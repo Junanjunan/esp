@@ -289,6 +289,14 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
         }
         break;
     }
+    case ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT: {
+        ESP_LOGI(TAG, "ACL connected - ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT");
+        break;
+    }
+    case ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT: {
+        ESP_LOGI(TAG, "ACL disconnected - ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT");
+        break;
+    }
 
 #if (CONFIG_EXAMPLE_SSP_ENABLED == true)
     case ESP_BT_GAP_CFM_REQ_EVT:
