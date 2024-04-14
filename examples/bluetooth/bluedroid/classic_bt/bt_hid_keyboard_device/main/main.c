@@ -207,6 +207,57 @@ void keyboard_task(void *pvParameters) {
     }
 }
 
+// Store the remote bluetooth device address in non volatile storage
+static void store_remote_bda(const uint8_t* remote_bda) {
+    nvs_handle_t my_handle;
+    esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE("NVS_OPEN", "Error (%s) opening NVS handle in store_remote_bda()", esp_err_to_name(err));
+        return;
+    }
+
+    err = nvs_set_blob(my_handle, "remote_bda", remote_bda, ESP_BD_ADDR_LEN);
+    if (err != ESP_OK) {
+        ESP_LOGE("NVS_SET", "Error (%s) storing remote BDA in NVS in nvs_set_blob()", esp_err_to_name(err));
+    }
+
+    err = nvs_commit(my_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE("NVS_COMMIT", "Error (%s) committing changes to NVS in nvs_commit()", esp_err_to_name(err));
+    }
+
+    nvs_close(my_handle);
+}
+
+// Retrieve the remote bluetooth device address from non volatile storage
+static esp_err_t get_stored_remote_bda(uint8_t *remote_bda) {
+    nvs_handle_t my_handle;
+    esp_err_t err = nvs_open("storage", NVS_READONLY, &my_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE("NVS_OPEN", "Error (%s) opening NVS handle in get_stored_remote_bda()", esp_err_to_name(err));
+        return err;
+    }
+
+    size_t length = ESP_BD_ADDR_LEN;
+    err = nvs_get_blob(my_handle, "remote_bda", remote_bda, &length);
+    if (err != ESP_OK) {
+        ESP_LOGE("NVS_GET", "Error (%s) reading remote BDA from NVS in nvs_get_blob()", esp_err_to_name(err));
+    }
+
+    nvs_close(my_handle);
+    return err;
+}
+
+// Attempt to reconnect to the last connected host
+void reconnect_to_host() {
+    uint8_t remote_bda[ESP_BD_ADDR_LEN];
+    if (get_stored_remote_bda(remote_bda) == ESP_OK) {
+        esp_bt_hid_device_connect(remote_bda);
+    } else {
+        ESP_LOGE("BT_RECONNECT", "Failed to get stored remote BDA");
+    }
+}
+
 void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
 {
     const char *TAG = "esp_bt_gap_cb";
@@ -215,6 +266,7 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
         if (param->auth_cmpl.stat == ESP_BT_STATUS_SUCCESS) {
             ESP_LOGI(TAG, "authentication success: %s", param->auth_cmpl.device_name);
             esp_log_buffer_hex(TAG, param->auth_cmpl.bda, ESP_BD_ADDR_LEN);
+            store_remote_bda(param->auth_cmpl.bda);
         } else {
             ESP_LOGE(TAG, "authentication failed, status:%d", param->auth_cmpl.stat);
         }
@@ -508,7 +560,7 @@ void app_main(void) {
     esp_bt_io_cap_t iocap = ESP_BT_IO_CAP_NONE;
     esp_bt_gap_set_security_param(param_type, &iocap, sizeof(uint8_t));
 #endif
-
+    reconnect_to_host();
     /*
      * Set default parameters for Legacy Pairing
      * Use variable pin, input pin code when pairing
