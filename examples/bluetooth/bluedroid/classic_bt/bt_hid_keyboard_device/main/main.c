@@ -394,7 +394,7 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
             ESP_LOGE(TAG, "open failed!");
         }
         break;
-    case ESP_HIDD_CLOSE_EVT:
+    case ESP_HIDD_CLOSE_EVT:    // normal disconnection
         ESP_LOGI(TAG, "ESP_HIDD_CLOSE_EVT");
         if (param->close.status == ESP_HIDD_SUCCESS) {
             if (param->close.conn_status == ESP_HIDD_CONN_STATE_DISCONNECTING) {
@@ -465,7 +465,7 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
     case ESP_HIDD_INTR_DATA_EVT:
         ESP_LOGI(TAG, "ESP_HIDD_INTR_DATA_EVT");
         break;
-    case ESP_HIDD_VC_UNPLUG_EVT:
+    case ESP_HIDD_VC_UNPLUG_EVT:    // 'remove device' event in Windows - when device unpluged -> CLOSE_EVT and UNPLUG_EVT occur in sequence
         ESP_LOGI(TAG, "ESP_HIDD_VC_UNPLUG_EVT");
         if (param->vc_unplug.status == ESP_HIDD_SUCCESS) {
             if (param->close.conn_status == ESP_HIDD_CONN_STATE_DISCONNECTED) {
