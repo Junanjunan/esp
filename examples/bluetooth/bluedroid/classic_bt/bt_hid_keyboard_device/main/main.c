@@ -361,10 +361,11 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
             ESP_LOGI(TAG, "setting hid parameters success!");
             ESP_LOGI(TAG, "setting to connectable, discoverable");
             esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
-            if (param->register_app.in_use) {
-                ESP_LOGI(TAG, "start virtual cable plug!");
-                esp_bt_hid_device_connect(param->register_app.bd_addr);
-            }
+            // if (param->register_app.in_use) {
+            //     ESP_LOGI(TAG, "start virtual cable plug!");
+            //     esp_bt_hid_device_connect(param->register_app.bd_addr);
+            // }
+            reconnect_to_host();
         } else {
             ESP_LOGE(TAG, "setting hid parameters failed!");
         }
@@ -448,20 +449,20 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
     case ESP_HIDD_SET_REPORT_EVT:
         ESP_LOGI(TAG, "ESP_HIDD_SET_REPORT_EVT");
         break;
-    // case ESP_HIDD_SET_PROTOCOL_EVT:
-    //     ESP_LOGI(TAG, "ESP_HIDD_SET_PROTOCOL_EVT");
-    //     if (param->set_protocol.protocol_mode == ESP_HIDD_BOOT_MODE) {
-    //         ESP_LOGI(TAG, "  - boot protocol");
-    //         xSemaphoreTake(s_local_param.keyboard_mutex, portMAX_DELAY);
-    //         s_local_param.x_dir = -1;
-    //         xSemaphoreGive(s_local_param.keyboard_mutex);
-    //     } else if (param->set_protocol.protocol_mode == ESP_HIDD_REPORT_MODE) {
-    //         ESP_LOGI(TAG, "  - report protocol");
-    //     }
-    //     xSemaphoreTake(s_local_param.keyboard_mutex, portMAX_DELAY);
-    //     s_local_param.protocol_mode = param->set_protocol.protocol_mode;
-    //     xSemaphoreGive(s_local_param.keyboard_mutex);
-    //     break;
+    case ESP_HIDD_SET_PROTOCOL_EVT:
+        ESP_LOGI(TAG, "ESP_HIDD_SET_PROTOCOL_EVT");
+        if (param->set_protocol.protocol_mode == ESP_HIDD_BOOT_MODE) {
+            ESP_LOGI(TAG, "  - boot protocol");
+            xSemaphoreTake(s_local_param.keyboard_mutex, portMAX_DELAY);
+            // s_local_param.x_dir = -1;
+            xSemaphoreGive(s_local_param.keyboard_mutex);
+        } else if (param->set_protocol.protocol_mode == ESP_HIDD_REPORT_MODE) {
+            ESP_LOGI(TAG, "  - report protocol");
+        }
+        xSemaphoreTake(s_local_param.keyboard_mutex, portMAX_DELAY);
+        s_local_param.protocol_mode = param->set_protocol.protocol_mode;
+        xSemaphoreGive(s_local_param.keyboard_mutex);
+        break;
     case ESP_HIDD_INTR_DATA_EVT:
         ESP_LOGI(TAG, "ESP_HIDD_INTR_DATA_EVT");
         break;
@@ -479,6 +480,9 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
         } else {
             ESP_LOGE(TAG, "close failed!");
         }
+        break;
+    case ESP_HIDD_API_ERR_EVT:
+        ESP_LOGI(TAG, "ESP_HIDD_API_ERR_EVT");
         break;
     default:
         break;
@@ -568,7 +572,6 @@ void app_main(void) {
     esp_bt_io_cap_t iocap = ESP_BT_IO_CAP_NONE;
     esp_bt_gap_set_security_param(param_type, &iocap, sizeof(uint8_t));
 #endif
-    reconnect_to_host();
     /*
      * Set default parameters for Legacy Pairing
      * Use variable pin, input pin code when pairing
