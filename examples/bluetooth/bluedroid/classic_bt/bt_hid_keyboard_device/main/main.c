@@ -425,8 +425,6 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
             ESP_LOGE(TAG, "init hidd failed!");
         }
         break;
-    case ESP_HIDD_DEINIT_EVT:
-        break;
     case ESP_HIDD_REGISTER_APP_EVT:
         if (param->register_app.status == ESP_HIDD_SUCCESS) {
             ESP_LOGI(TAG, "setting hid parameters success!");
@@ -439,13 +437,6 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
             reconnect_to_host();
         } else {
             ESP_LOGE(TAG, "setting hid parameters failed!");
-        }
-        break;
-    case ESP_HIDD_UNREGISTER_APP_EVT:
-        if (param->unregister_app.status == ESP_HIDD_SUCCESS) {
-            ESP_LOGI(TAG, "unregister app success!");
-        } else {
-            ESP_LOGE(TAG, "unregister app failed!");
         }
         break;
     case ESP_HIDD_OPEN_EVT:
@@ -464,23 +455,6 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
             }
         } else {
             ESP_LOGE(TAG, "open failed!");
-        }
-        break;
-    case ESP_HIDD_CLOSE_EVT:    // normal disconnection
-        ESP_LOGI(TAG, "ESP_HIDD_CLOSE_EVT");
-        if (param->close.status == ESP_HIDD_SUCCESS) {
-            if (param->close.conn_status == ESP_HIDD_CONN_STATE_DISCONNECTING) {
-                ESP_LOGI(TAG, "disconnecting...");
-            } else if (param->close.conn_status == ESP_HIDD_CONN_STATE_DISCONNECTED) {
-                ESP_LOGI(TAG, "disconnected!");
-                bt_app_task_shut_down();
-                ESP_LOGI(TAG, "making self discoverable and connectable again.");
-                esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
-            } else {
-                ESP_LOGE(TAG, "unknown connection status");
-            }
-        } else {
-            ESP_LOGE(TAG, "close failed!");
         }
         break;
     case ESP_HIDD_SEND_REPORT_EVT:
@@ -537,6 +511,23 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
     case ESP_HIDD_INTR_DATA_EVT:
         ESP_LOGI(TAG, "ESP_HIDD_INTR_DATA_EVT");
         break;
+    case ESP_HIDD_CLOSE_EVT:    // normal disconnection
+        ESP_LOGI(TAG, "ESP_HIDD_CLOSE_EVT");
+        if (param->close.status == ESP_HIDD_SUCCESS) {
+            if (param->close.conn_status == ESP_HIDD_CONN_STATE_DISCONNECTING) {
+                ESP_LOGI(TAG, "disconnecting...");
+            } else if (param->close.conn_status == ESP_HIDD_CONN_STATE_DISCONNECTED) {
+                ESP_LOGI(TAG, "disconnected!");
+                bt_app_task_shut_down();
+                ESP_LOGI(TAG, "making self discoverable and connectable again.");
+                esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+            } else {
+                ESP_LOGE(TAG, "unknown connection status");
+            }
+        } else {
+            ESP_LOGE(TAG, "close failed!");
+        }
+        break;
     case ESP_HIDD_VC_UNPLUG_EVT:    // 'remove device' event in Windows - when device unpluged -> CLOSE_EVT and UNPLUG_EVT occur in sequence
         ESP_LOGI(TAG, "ESP_HIDD_VC_UNPLUG_EVT");
         if (param->vc_unplug.status == ESP_HIDD_SUCCESS) {
@@ -565,6 +556,15 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
           If host doesn't have device information(Maybe it means there is not handshaking),
           device has to restart connection from the beginning.
         */
+        break;
+    case ESP_HIDD_UNREGISTER_APP_EVT:
+        if (param->unregister_app.status == ESP_HIDD_SUCCESS) {
+            ESP_LOGI(TAG, "unregister app success!");
+        } else {
+            ESP_LOGE(TAG, "unregister app failed!");
+        }
+        break;
+    case ESP_HIDD_DEINIT_EVT:
         break;
     case ESP_HIDD_API_ERR_EVT:
         ESP_LOGI(TAG, "ESP_HIDD_API_ERR_EVT");
