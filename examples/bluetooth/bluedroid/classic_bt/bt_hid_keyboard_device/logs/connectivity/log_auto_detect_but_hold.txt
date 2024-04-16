@@ -1,0 +1,81 @@
+// This log is host was auto detected by device but host do nothing so connection did not occur case
+
+I (31) boot: ESP-IDF v5.2.1 2nd stage bootloader
+I (31) boot: compile time Apr 15 2024 22:57:40
+I (31) boot: Multicore bootloader
+I (35) boot: chip revision: v3.1
+I (39) boot.esp32: SPI Speed      : 40MHz
+I (44) boot.esp32: SPI Mode       : DIO
+I (48) boot.esp32: SPI Flash Size : 2MB
+I (53) boot: Enabling RNG early entropy source...
+I (58) boot: Partition Table:
+I (62) boot: ## Label            Usage          Type ST Offset   Length
+I (69) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (77) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (84) boot:  2 factory          factory app      00 00 00010000 00100000
+I (92) boot: End of partition table
+I (96) esp_image: segment 0: paddr=00010020 vaddr=3f400020 size=2a214h (172564) map
+I (163) esp_image: segment 1: paddr=0003a23c vaddr=3ffbdb60 size=049ach ( 18860) load
+I (171) esp_image: segment 2: paddr=0003ebf0 vaddr=40080000 size=01428h (  5160) load
+I (173) esp_image: segment 3: paddr=00040020 vaddr=400d0020 size=96490h (615568) map
+I (389) esp_image: segment 4: paddr=000d64b8 vaddr=40081428 size=17b74h ( 97140) load
+I (439) boot: Loaded app from partition at offset 0x10000
+I (439) boot: Disabling RNG early entropy source...
+I (451) cpu_start: Multicore app
+I (460) cpu_start: Pro cpu start user code
+I (460) cpu_start: cpu freq: 160000000 Hz
+I (460) cpu_start: Application information:
+I (463) cpu_start: Project name:     bt_hid_keyboard_device
+I (469) cpu_start: App version:      4cd42fa-dirty
+I (475) cpu_start: Compile time:     Apr 16 2024 20:57:53
+I (481) cpu_start: ELF file SHA256:  4693d9337...
+I (486) cpu_start: ESP-IDF:          v5.2.1
+I (491) cpu_start: Min chip rev:     v0.0
+I (496) cpu_start: Max chip rev:     v3.99
+I (500) cpu_start: Chip rev:         v3.1
+I (505) heap_init: Initializing. RAM available for dynamic allocation:
+I (513) heap_init: At 3FFAFF10 len 000000F0 (0 KiB): DRAM
+I (518) heap_init: At 3FFB6388 len 00001C78 (7 KiB): DRAM
+I (525) heap_init: At 3FFB9A20 len 00004108 (16 KiB): DRAM
+I (531) heap_init: At 3FFC8298 len 00017D68 (95 KiB): DRAM
+I (537) heap_init: At 3FFE0440 len 00003AE0 (14 KiB): D/IRAM
+I (543) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM
+I (550) heap_init: At 40098F9C len 00007064 (28 KiB): IRAM
+I (557) spi_flash: detected chip: generic
+I (560) spi_flash: flash io: dio
+W (564) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+I (578) coexist: coex firmware version: 77cd7f8
+I (584) main_task: Started on CPU0
+I (594) main_task: Calling app_main()
+I (634) BTDM_INIT: BT controller compile version [0f0c5a2]
+I (634) BTDM_INIT: Bluetooth MAC: 08:d1:f9:27:75:32
+I (634) phy_init: phy_version 4791,2c4672b,Dec 20 2023,16:06:06
+I (1304) app_main: setting device name
+    I (1314) esp_bt_gap_cb: ESP_BT_GAP_CONFIG_EIR_DATA_EVT
+I (1314) app_main: setting cod major, peripheral
+I (3314) app_main: register hid device callback
+I (3314) app_main: starting hid device
+I (3314) esp_bt_hidd_cb: setting hid parameters
+    I (3314) esp_bt_gap_cb: ESP_BT_GAP_CONFIG_EIR_DATA_EVT
+I (3324) esp_bt_hidd_cb: setting hid parameters success!
+I (3324) esp_bt_hidd_cb: setting to connectable, discoverable
+I (3344) esp_bt_hidd_cb: connecting...
+I (3344) app_main: exiting
+I (3344) main_task: Returned from app_main()
+E (3764) BT_BTM: btm_sec_l2cap_access_req: (initiator) remote features unknown!!sec_flags:0x80
+
+W (3764) BT_HCI: hcif conn complete: hdl 0x81, st 0x0
+    I (3774) esp_bt_gap_cb: ACL connected - ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT
+E (12154) BT_HCI: command_timed_out hci layer timeout waiting for response to a command. opcode: 0x40f
+W (33604) BT_BTM: btm_sec_clr_temp_auth_service() - no dev CB
+
+W (33614) BT_HCI: hci cmd send: disconnect: hdl 0x81, rsn:0x13
+W (33614) BT_HIDD: hidd_l2cif_connect_cfm: connection failed, now disconnect
+W (33614) BT_HIDD: hidd_conn_disconnect: already disconnected
+E (33634) BT_BTC:  btc_dm_auth_cmpl_evt() Authentication fail reason 5
+E (33634) esp_bt_gap_cb: authentication failed, status:9
+E (33684) BT_BTM: Device not found
+
+W (33684) BT_HCI: hcif disc complete: hdl 0x81, rsn 0x16
+W (33684) BT_APPL: bta_gattc_mark_bg_conn unable to find the bg connection mask for: 8c:55:4a:42:9e:46
+    I (33694) esp_bt_gap_cb: ACL disconnected - ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT

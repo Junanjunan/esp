@@ -1,0 +1,22 @@
+W (66294) BT_HCI: hcif conn complete: hdl 0x80, st 0x0
+I (66304) esp_bt_gap_cb: ACL connected - ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT
+I (66864) esp_bt_gap_cb: ESP_BT_GAP_AUTH_CMPL_EVT
+I (66864) esp_bt_gap_cb: authentication success: JUN-ION-NOTEBOO
+I (66864) esp_bt_gap_cb: 8c 55 4a 42 9e 46
+I (66894) esp_bt_gap_cb: ESP_BT_GAP_ENC_CHG_EVT
+W (67104) BT_HIDD: hidd_l2cif_config_cfm: config failed, retry
+W (67114) BT_APPL: new conn_srvc id:20, app_id:1
+I (67114) esp_bt_hidd_cb: ESP_HIDD_OPEN_EVT
+I (67114) esp_bt_hidd_cb: connected to 8c:55:4a:42:9e:46
+I (67114) keyboard_task: Starting keyboard task
+I (67124) esp_bt_hidd_cb: making self non-discoverable and non-connectable.
+I (67594) esp_bt_hidd_cb: ESP_HIDD_CLOSE_EVT
+I (67594) esp_bt_hidd_cb: disconnected!
+I (67594) esp_bt_hidd_cb: making self discoverable and connectable again.
+W (67684) BT_HIDD: hidd_l2cif_config_cfm: config failed, retry
+W (67694) BT_APPL: new conn_srvc id:20, app_id:1
+I (67694) esp_bt_hidd_cb: ESP_HIDD_OPEN_EVT
+I (67694) esp_bt_hidd_cb: connected to 8c:55:4a:42:9e:46
+I (67704) keyboard_task: Starting keyboard task
+I (67704) esp_bt_hidd_cb: making self non-discoverable and non-connectable.
+I (67714) esp_bt_hidd_cb: ESP_HIDD_INTR_DATA_EVT

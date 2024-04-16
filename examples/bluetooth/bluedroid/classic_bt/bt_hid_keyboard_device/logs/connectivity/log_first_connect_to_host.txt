@@ -1,0 +1,17 @@
+I (177524) esp_bt_gap_cb: authentication success: JUN-ION-NOTEBOO
+I (177524) esp_bt_gap_cb: 8c 55 4a 42 9e 46
+    I (177554) esp_bt_gap_cb: ESP_BT_GAP_ENC_CHG_EVT
+W (177764) BT_HIDD: hidd_l2cif_config_cfm: config failed, retry
+W (177774) BT_APPL: new conn_srvc id:20, app_id:1
+I (177774) esp_bt_hidd_cb: connected to 8c:55:4a:42:9e:46
+I (177774) keyboard_task: Starting keyboard task
+I (177784) esp_bt_hidd_cb: making self non-discoverable and non-connectable.
+    I (178264) esp_bt_hidd_cb: ESP_HIDD_CLOSE_EVT
+I (178264) esp_bt_hidd_cb: disconnected!
+I (178264) esp_bt_hidd_cb: making self discoverable and connectable again.
+W (178364) BT_HIDD: hidd_l2cif_config_cfm: config failed, retry
+W (178374) BT_APPL: new conn_srvc id:20, app_id:1
+I (178374) esp_bt_hidd_cb: connected to 8c:55:4a:42:9e:46
+I (178384) keyboard_task: Starting keyboard task
+I (178384) esp_bt_hidd_cb: making self non-discoverable and non-connectable.
+    I (178394) esp_bt_hidd_cb: ESP_HIDD_INTR_DATA_EVT

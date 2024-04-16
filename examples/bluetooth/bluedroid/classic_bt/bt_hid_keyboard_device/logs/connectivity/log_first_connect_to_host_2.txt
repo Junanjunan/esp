@@ -1,0 +1,26 @@
+W (8324) BT_HCI: hcif disc complete: hdl 0x81, rsn 0x16
+W (8324) BT_APPL: bta_gattc_mark_bg_conn unable to find the bg connection mask for: 8c:55:4a:42:9e:46
+    I (8334) esp_bt_gap_cb: ACL disconnected - ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT
+W (15624) BT_HCI: hcif conn complete: hdl 0x80, st 0x0
+    I (15624) esp_bt_gap_cb: ACL connected - ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT
+I (16124) esp_bt_gap_cb: authentication success: JUN-ION-NOTEBOO
+I (16124) esp_bt_gap_cb: 8c 55 4a 42 9e 46
+    I (16154) esp_bt_gap_cb: ESP_BT_GAP_ENC_CHG_EVT
+W (16384) BT_HIDD: hidd_l2cif_config_cfm: config failed, retry
+W (16394) BT_APPL: new conn_srvc id:20, app_id:1
+    I (16394) esp_bt_hidd_cb: ESP_HIDD_OPEN_EVT
+I (16394) esp_bt_hidd_cb: connected to 8c:55:4a:42:9e:46
+I (16394) keyboard_task: Starting keyboard task
+I (16404) esp_bt_hidd_cb: making self non-discoverable and non-connectable.
+    I (16864) esp_bt_hidd_cb: ESP_HIDD_CLOSE_EVT
+I (16864) esp_bt_hidd_cb: disconnected!
+I (16864) esp_bt_hidd_cb: making self discoverable and connectable again.
+W (16964) BT_HIDD: hidd_l2cif_config_cfm: config failed, retry
+W (16974) BT_APPL: new conn_srvc id:20, app_id:1
+    I (16974) esp_bt_hidd_cb: ESP_HIDD_OPEN_EVT
+I (16984) esp_bt_hidd_cb: connected to 8c:55:4a:42:9e:46
+I (16984) keyboard_task: Starting keyboard task
+I (16994) esp_bt_hidd_cb: ESP_HIDD_INTR_DATA_EVT
+W (22174) BT_HCI: hci cmd send: sniff: hdl 0x80, intv(10 18)
+W (22184) BT_HCI: hcif mode change: hdl 0x80, mode 2, intv 18, status 0x0
+I (22184) esp_bt_gap_cb: ESP_BT_GAP_MODE_CHG_EVT mode:2

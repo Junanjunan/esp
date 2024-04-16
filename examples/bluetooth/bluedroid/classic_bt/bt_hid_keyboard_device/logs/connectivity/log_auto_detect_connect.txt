@@ -1,0 +1,19 @@
+// this log is situation that host was auto detected by device and host get connection request and allow that request, but connection failed.
+
+E (3914) BT_BTM: btm_sec_l2cap_access_req: (initiator) remote features unknown!!sec_flags:0x80
+
+W (3914) BT_HCI: hcif conn complete: hdl 0x81, st 0x0
+    I (3914) esp_bt_gap_cb: ACL connected - ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT
+
+----- Upper: when I reboot, before allow connection request
+      Under: after I allow connection request. ----
+
+I (11994) esp_bt_gap_cb: authentication success: JUN-ION-NOTEBOO
+I (12004) esp_bt_gap_cb: 8c 55 4a 42 9e 46
+    I (12034) esp_bt_gap_cb: ESP_BT_GAP_ENC_CHG_EVT
+W (12104) BT_HCI: hcif disc complete: hdl 0x81, rsn 0x24
+    I (12104) esp_bt_gap_cb: ACL disconnected - ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT
+W (12734) BT_HCI: hcif conn complete: hdl 0x80, st 0x0
+    I (12734) esp_bt_gap_cb: ACL connected - ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT
+W (16014) BT_HCI: hcif disc complete: hdl 0x80, rsn 0x13
+    I (16014) esp_bt_gap_cb: ACL disconnected - ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT
