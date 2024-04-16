@@ -258,12 +258,24 @@ void reconnect_to_host() {
     }
 }
 
+/*
+  GAP CALLBACK CASES
+    esp-idf/components/bt/host/bluedroid/api/include/api/esp_gap_bt_api.h
+      -> esp_bt_gap_cb_event_t
+      In this path, there are also functions about callback like esp_bt_gap_set_scan_mode
+      I recorded noticeable function -> https://taltal-dev-note.tistory.com/286
+*/
 void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
 {
     const char *TAG = "esp_bt_gap_cb";
     switch (event) {
     case ESP_BT_GAP_AUTH_CMPL_EVT: {
         if (param->auth_cmpl.stat == ESP_BT_STATUS_SUCCESS) {
+            /* 
+              ESP_BT_STATUS_SUCCESS: There are more case in enum of esp_bt_status_t
+                esp-idf/components/bt/host/bluedroid/api/include/api/esp_bt_defs.h 
+                  -> esp_bt_status_t structure
+            */
             ESP_LOGI(TAG, "authentication success: %s", param->auth_cmpl.device_name);
             esp_log_buffer_hex(TAG, param->auth_cmpl.bda, ESP_BD_ADDR_LEN);
             store_remote_bda(param->auth_cmpl.bda);
@@ -480,10 +492,31 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
         } else {
             ESP_LOGE(TAG, "close failed!");
         }
+        /*
+        When Unplug event occurs, need logic about removing key, value of unpluged host from nvs.
+        For this, first I have to get the address of unpluged host.
+          Maybe host address will be in "param->open.bd_addr" (It is in ESP_HIDD_OPEN_EVT)
+          if that value does not exist in UNPLUG_EVT,
+          I have to store the address of host in globally and use it in UNPLUG_EVT
+        
+        + But, I have to make logic when host removes the device without connection.
+          Because, when device was removed from host without connection, Host doesn't know device but device knows host information.
+          So, when device try to connect host with reconnect_to_host() function, it will be failed because host doesn't know device information and refuse connection.
+          So, I have to make logic that checks wheter host has device information to connect without shake hands.
+          If host doesn't have device information(Maybe it means there is not handshaking),
+          device has to restart connection from the beginning.
+        */
         break;
     case ESP_HIDD_API_ERR_EVT:
         ESP_LOGI(TAG, "ESP_HIDD_API_ERR_EVT");
         break;
+    /*
+    case With all reset about nvs,
+    I think these code will be usable
+      fflush(stdout);
+      esp_restart();
+    or this logic has to be added in the GAP CALLBACK
+    */
     default:
         break;
     }
