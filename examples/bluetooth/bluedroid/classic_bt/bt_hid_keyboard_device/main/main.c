@@ -270,6 +270,7 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
     const char *TAG = "esp_bt_gap_cb";
     switch (event) {
     case ESP_BT_GAP_AUTH_CMPL_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_AUTH_CMPL_EVT");
         if (param->auth_cmpl.stat == ESP_BT_STATUS_SUCCESS) {
             /* 
               ESP_BT_STATUS_SUCCESS: There are more case in enum of esp_bt_status_t
@@ -418,6 +419,7 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
     static const char *TAG = "esp_bt_hidd_cb";
     switch (event) {
     case ESP_HIDD_INIT_EVT:
+        ESP_LOGI(TAG, "ESP_HIDD_INIT_EVT");
         if (param->init.status == ESP_HIDD_SUCCESS) {
             ESP_LOGI(TAG, "setting hid parameters");
             esp_bt_hid_device_register_app(&s_local_param.app_param, &s_local_param.both_qos, &s_local_param.both_qos);
@@ -426,6 +428,7 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
         }
         break;
     case ESP_HIDD_REGISTER_APP_EVT:
+        ESP_LOGI(TAG, "ESP_HIDD_REGISTER_APP_EVT");
         if (param->register_app.status == ESP_HIDD_SUCCESS) {
             ESP_LOGI(TAG, "setting hid parameters success!");
             ESP_LOGI(TAG, "setting to connectable, discoverable");
@@ -440,6 +443,7 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
         }
         break;
     case ESP_HIDD_OPEN_EVT:
+        ESP_LOGI(TAG, "ESP_HIDD_OPEN_EVT");
         if (param->open.status == ESP_HIDD_SUCCESS) {
             if (param->open.conn_status == ESP_HIDD_CONN_STATE_CONNECTING) {
                 ESP_LOGI(TAG, "connecting...");
@@ -458,6 +462,7 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
         }
         break;
     case ESP_HIDD_SEND_REPORT_EVT:
+        ESP_LOGI(TAG, "ESP_HIDD_SEND_REPORT_EVT");
         if (param->send_report.status == ESP_HIDD_SUCCESS) {
             ESP_LOGI(TAG, "ESP_HIDD_SEND_REPORT_EVT id:0x%02x, type:%d", param->send_report.report_id,
                     param->send_report.report_type);
@@ -558,6 +563,7 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
         */
         break;
     case ESP_HIDD_UNREGISTER_APP_EVT:
+        ESP_LOGI(TAG, "ESP_HIDD_UNREGISTER_APP_EVT");
         if (param->unregister_app.status == ESP_HIDD_SUCCESS) {
             ESP_LOGI(TAG, "unregister app success!");
         } else {
@@ -565,6 +571,7 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
         }
         break;
     case ESP_HIDD_DEINIT_EVT:
+        ESP_LOGI(TAG, "ESP_HIDD_DEINIT_EVT");
         break;
     case ESP_HIDD_API_ERR_EVT:
         ESP_LOGI(TAG, "ESP_HIDD_API_ERR_EVT");
@@ -662,6 +669,7 @@ void app_main(void) {
     /* Set default parameters for Secure Simple Pairing */
     esp_bt_sp_param_t param_type = ESP_BT_SP_IOCAP_MODE;
     esp_bt_io_cap_t iocap = ESP_BT_IO_CAP_NONE;
+    ESP_LOGI(TAG, "CONFIG_EXAMPLE_SSP_ENABLED");
     esp_bt_gap_set_security_param(param_type, &iocap, sizeof(uint8_t));
 #endif
     /*
