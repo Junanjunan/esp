@@ -437,7 +437,6 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
             //     ESP_LOGI(TAG, "start virtual cable plug!");
             //     esp_bt_hid_device_connect(param->register_app.bd_addr);
             // }
-            reconnect_to_host();
         } else {
             ESP_LOGE(TAG, "setting hid parameters failed!");
         }
@@ -679,6 +678,6 @@ void app_main(void) {
     esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_VARIABLE;
     esp_bt_pin_code_t pin_code;
     esp_bt_gap_set_pin(pin_type, 0, pin_code);
-
+    reconnect_to_host();
     ESP_LOGI(TAG, "exiting");
 }
