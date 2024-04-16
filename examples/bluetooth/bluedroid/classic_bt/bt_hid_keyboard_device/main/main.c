@@ -309,7 +309,66 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
         ESP_LOGI(TAG, "ACL disconnected - ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT");
         break;
     }
-
+    case ESP_BT_GAP_DISC_RES_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_DISC_RES_EVT");
+        break;
+    }
+    case ESP_BT_GAP_RMT_SRVCS_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_RMT_SRVCS_EVT");
+        break;
+    }
+    case ESP_BT_GAP_RMT_SRVC_REC_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_RMT_SRVC_REC_EVT");
+        break;
+    }
+    case ESP_BT_GAP_DISC_STATE_CHANGED_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_DISC_STATE_CHANGED_EVT");
+        break;
+    }
+    case ESP_BT_GAP_READ_RSSI_DELTA_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_READ_RSSI_DELTA_EVT");
+        break;
+    }
+    case ESP_BT_GAP_CONFIG_EIR_DATA_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_CONFIG_EIR_DATA_EVT");
+        break;
+    }
+    case ESP_BT_GAP_SET_AFH_CHANNELS_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_SET_AFH_CHANNELS_EVT");
+        break;
+    }
+    case ESP_BT_GAP_READ_REMOTE_NAME_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_READ_REMOTE_NAME_EVT");
+        break;
+    }
+    case ESP_BT_GAP_REMOVE_BOND_DEV_COMPLETE_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_REMOVE_BOND_DEV_COMPLETE_EVT");
+        break;
+    }
+    case ESP_BT_GAP_QOS_CMPL_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_QOS_CMPL_EVT");
+        break;
+    }
+    case ESP_BT_GAP_SET_PAGE_TO_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_SET_PAGE_TO_EVT");
+        break;
+    }
+    case ESP_BT_GAP_GET_PAGE_TO_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_GET_PAGE_TO_EVT");
+        break;
+    }
+    case ESP_BT_GAP_ACL_PKT_TYPE_CHANGED_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_ACL_PKT_TYPE_CHANGED_EVT");
+        break;
+    }
+    case ESP_BT_GAP_ENC_CHG_EVT: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_ENC_CHG_EVT");
+        break;
+    }
+    case ESP_BT_GAP_EVT_MAX: {
+        ESP_LOGI(TAG, "ESP_BT_GAP_EVT_MAX");
+        break;
+    }
 #if (CONFIG_EXAMPLE_SSP_ENABLED == true)
     case ESP_BT_GAP_CFM_REQ_EVT:
         ESP_LOGI(TAG, "ESP_BT_GAP_CFM_REQ_EVT Please compare the numeric value: %"PRIu32, param->cfm_req.num_val);
