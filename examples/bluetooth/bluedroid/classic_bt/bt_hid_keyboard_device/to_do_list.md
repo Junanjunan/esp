@@ -39,6 +39,10 @@ classic & BLE
 
 ### Change Mode
   - [ ] Convert between UART and Bluetooth and Wireless
+  - [ ] Sniff mode
+  - [ ] light sleep mode
+  - [ ] deep sleep mode
+  - [ ] hibernation mode
 
 <hr>
 
