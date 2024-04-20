@@ -32,6 +32,13 @@ void bda_to_string(const uint8_t *bda, char *bda_key, size_t size) {
              bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
 }
 
+typedef struct bda_list {
+    esp_bd_addr_t bda;
+    struct bda_list *next;
+} bda_list_t;
+
+bda_list_t *head = NULL;
+
 int row_pins[ROW_NUM] = {18, 19};
 int col_pins[COL_NUM] = {32, 33};
 
@@ -307,6 +314,28 @@ void delete_address_from_nvs(const char *bda_key) {
     }
 }
 
+// Function to check if device is already discovered
+bool is_device_discovered(const esp_bd_addr_t bda) {
+    bda_list_t *current = head;
+    while (current != NULL) {
+        if (memcmp(current->bda, bda, sizeof(esp_bd_addr_t)) == 0) {
+            return true; // Device already discovered
+        }
+        current = current->next;
+    }
+    return false;
+}
+
+// Function to add a device to the list
+void add_device_to_list(const esp_bd_addr_t bda) {
+    bda_list_t *new_node = (bda_list_t *)malloc(sizeof(bda_list_t));
+    if (new_node != NULL) {
+        memcpy(new_node->bda, bda, sizeof(esp_bd_addr_t));
+        new_node->next = head;
+        head = new_node;
+    }
+}
+
 // Attempt to reconnect to the last connected host
 void reconnect_to_host(esp_bd_addr_t remote_bda) {
     if (get_stored_remote_bda(remote_bda) == ESP_OK) {
@@ -320,12 +349,16 @@ void connect_to_discovered_host (esp_bt_gap_cb_param_t *param) {
     for (int i = 0; i < param->disc_res.num_prop; i++) {
         esp_bt_gap_dev_prop_t *prop = &param->disc_res.prop[i];
         if (prop->type == ESP_BT_GAP_DEV_PROP_EIR && prop->val != NULL) {
-            ESP_LOGI(__func__, "Device found: BDA %02x:%02x:%02x:%02x:%02x:%02x",
-                param->disc_res.bda[0], param->disc_res.bda[1],
-                param->disc_res.bda[2], param->disc_res.bda[3],
-                param->disc_res.bda[4], param->disc_res.bda[5]);
-            ESP_LOGI(__func__, "Find device from nvs and connect");
-            reconnect_to_host(param->disc_res.bda);
+            if (!is_device_discovered(param->disc_res.bda))
+            {
+                add_device_to_list(param->disc_res.bda);
+                ESP_LOGI(__func__, "Device found: BDA %02x:%02x:%02x:%02x:%02x:%02x",
+                    param->disc_res.bda[0], param->disc_res.bda[1],
+                    param->disc_res.bda[2], param->disc_res.bda[3],
+                    param->disc_res.bda[4], param->disc_res.bda[5]);
+                ESP_LOGI(__func__, "Find device from nvs and connect");
+                reconnect_to_host(param->disc_res.bda);
+            }
         }
     }
 }
@@ -397,6 +430,19 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
     }
     case ESP_BT_GAP_DISC_STATE_CHANGED_EVT: {
         ESP_LOGI(TAG, "ESP_BT_GAP_DISC_STATE_CHANGED_EVT");
+        if (param->disc_st_chg.state == ESP_BT_GAP_DISCOVERY_STARTED) {
+            ESP_LOGI(TAG, "Discovery started.");
+        } else if (param->disc_st_chg.state == ESP_BT_GAP_DISCOVERY_STOPPED) {
+            ESP_LOGI(TAG, "Discovery stopped.");
+            // Free the linked list
+            bda_list_t *current = head;
+            while (current != NULL) {
+                bda_list_t *next = current->next;
+                free(current);
+                current = next;
+            }
+            head = NULL;
+        }
         break;
     }
     case ESP_BT_GAP_READ_RSSI_DELTA_EVT: {
