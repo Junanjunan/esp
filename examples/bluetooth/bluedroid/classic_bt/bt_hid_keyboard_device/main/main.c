@@ -275,6 +275,38 @@ static esp_err_t get_stored_remote_bda(esp_bd_addr_t remote_bda) {
     return err;
 }
 
+// Delete the host address from NVS
+void delete_address_from_nvs(const char *bda_key) {
+    nvs_handle_t my_handle;
+    esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(__func__, "Error (%s) opening NVS handle!", esp_err_to_name(err));
+        return;
+    }
+    else
+    {
+        unsigned int count = 0;
+        do {
+            err = nvs_erase_key(my_handle, bda_key);
+            if (err == ESP_OK)
+            {
+                ESP_LOGI(__func__, "Deleted address from NVS");
+            }
+            else if (count > 10)
+            {
+                ESP_LOGE(__func__, "Failed to delete address from NVS: %s", esp_err_to_name(err));
+                break;
+            }
+            count++;
+        } while (err == ESP_OK);
+
+        // Commit changes and close NVS handle
+        nvs_commit(my_handle);
+        nvs_close(my_handle);
+    }
+}
+
 // Attempt to reconnect to the last connected host
 void reconnect_to_host(esp_bd_addr_t remote_bda) {
     if (get_stored_remote_bda(remote_bda) == ESP_OK) {
@@ -385,6 +417,7 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
     }
     case ESP_BT_GAP_REMOVE_BOND_DEV_COMPLETE_EVT: {
         ESP_LOGI(TAG, "ESP_BT_GAP_REMOVE_BOND_DEV_COMPLETE_EVT");
+        delete_address_from_nvs(connected_bda_key);
         break;
     }
     case ESP_BT_GAP_QOS_CMPL_EVT: {
