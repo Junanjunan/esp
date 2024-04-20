@@ -22,6 +22,9 @@
 #define ROW_NUM 2
 #define COL_NUM 2
 
+// Global variable to store the address key of the connected host
+char connected_bda_key[ESP_BD_ADDR_LEN] = {0};
+
 char bda_key[ESP_BD_ADDR_LEN];
 
 void bda_to_string(const uint8_t *bda, char *bda_key, size_t size) {
@@ -217,6 +220,8 @@ void keyboard_task(void *pvParameters) {
 // Store the remote bluetooth device address in non volatile storage
 static void store_remote_bda(esp_bd_addr_t remote_bda) {
     bda_to_string(remote_bda, bda_key, sizeof(bda_key));
+    // Store the key in connected_bda_key when device connected
+    memcpy(connected_bda_key, bda_key, sizeof(connected_bda_key));
     nvs_handle_t my_handle;
     esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
     if (err != ESP_OK) {
@@ -271,12 +276,25 @@ static esp_err_t get_stored_remote_bda(esp_bd_addr_t remote_bda) {
 }
 
 // Attempt to reconnect to the last connected host
-void reconnect_to_host() {
-    uint8_t remote_bda[ESP_BD_ADDR_LEN];
+void reconnect_to_host(esp_bd_addr_t remote_bda) {
     if (get_stored_remote_bda(remote_bda) == ESP_OK) {
         esp_bt_hid_device_connect(remote_bda);
     } else {
         ESP_LOGE("BT_RECONNECT", "Failed to get stored remote BDA");
+    }
+}
+
+void connect_to_discovered_host (esp_bt_gap_cb_param_t *param) {
+    for (int i = 0; i < param->disc_res.num_prop; i++) {
+        esp_bt_gap_dev_prop_t *prop = &param->disc_res.prop[i];
+        if (prop->type == ESP_BT_GAP_DEV_PROP_EIR && prop->val != NULL) {
+            ESP_LOGI(__func__, "Device found: BDA %02x:%02x:%02x:%02x:%02x:%02x",
+                param->disc_res.bda[0], param->disc_res.bda[1],
+                param->disc_res.bda[2], param->disc_res.bda[3],
+                param->disc_res.bda[4], param->disc_res.bda[5]);
+            ESP_LOGI(__func__, "Find device from nvs and connect");
+            reconnect_to_host(param->disc_res.bda);
+        }
     }
 }
 
@@ -334,6 +352,7 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
     }
     case ESP_BT_GAP_DISC_RES_EVT: {
         ESP_LOGI(TAG, "ESP_BT_GAP_DISC_RES_EVT");
+        connect_to_discovered_host(param);
         break;
     }
     case ESP_BT_GAP_RMT_SRVCS_EVT: {
@@ -454,6 +473,7 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
         if (param->register_app.status == ESP_HIDD_SUCCESS) {
             ESP_LOGI(TAG, "setting hid parameters success!");
             ESP_LOGI(TAG, "setting to connectable, discoverable");
+            esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, 3, 0);
             esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
         } else {
             ESP_LOGE(TAG, "setting hid parameters failed!");
@@ -471,6 +491,8 @@ void esp_bt_hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
                 bt_app_task_start_up();
                 ESP_LOGI(TAG, "making self non-discoverable and non-connectable.");
                 esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE);
+                // In this event, connected to host so stop discovery
+                esp_bt_gap_cancel_discovery();
             } else {
                 ESP_LOGE(TAG, "unknown connection status");
             }
@@ -696,6 +718,5 @@ void app_main(void) {
     esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_VARIABLE;
     esp_bt_pin_code_t pin_code;
     esp_bt_gap_set_pin(pin_type, 0, pin_code);
-    reconnect_to_host();
     ESP_LOGI(TAG, "exiting");
 }
