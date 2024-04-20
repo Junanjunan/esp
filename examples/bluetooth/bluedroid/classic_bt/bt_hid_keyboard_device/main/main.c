@@ -22,6 +22,13 @@
 #define ROW_NUM 2
 #define COL_NUM 2
 
+char bda_key[ESP_BD_ADDR_LEN];
+
+void bda_to_string(const uint8_t *bda, char *bda_key, size_t size) {
+    snprintf(bda_key, size, "%02x%02x%02x%02x%02x%02x",
+             bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
+}
+
 int row_pins[ROW_NUM] = {18, 19};
 int col_pins[COL_NUM] = {32, 33};
 
@@ -208,7 +215,8 @@ void keyboard_task(void *pvParameters) {
 }
 
 // Store the remote bluetooth device address in non volatile storage
-static void store_remote_bda(const uint8_t* remote_bda) {
+static void store_remote_bda(esp_bd_addr_t remote_bda) {
+    bda_to_string(remote_bda, bda_key, sizeof(bda_key));
     nvs_handle_t my_handle;
     esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
     if (err != ESP_OK) {
@@ -216,7 +224,7 @@ static void store_remote_bda(const uint8_t* remote_bda) {
         return;
     }
 
-    err = nvs_set_blob(my_handle, "remote_bda", remote_bda, ESP_BD_ADDR_LEN);
+    err = nvs_set_blob(my_handle, bda_key, remote_bda, ESP_BD_ADDR_LEN);
     if (err != ESP_OK) {
         ESP_LOGE("NVS_SET", "Error (%s) storing remote BDA in NVS in nvs_set_blob()", esp_err_to_name(err));
     }
@@ -230,7 +238,8 @@ static void store_remote_bda(const uint8_t* remote_bda) {
 }
 
 // Retrieve the remote bluetooth device address from non volatile storage
-static esp_err_t get_stored_remote_bda(uint8_t *remote_bda) {
+static esp_err_t get_stored_remote_bda(esp_bd_addr_t remote_bda) {
+    bda_to_string(remote_bda, bda_key, sizeof(bda_key));
     nvs_handle_t my_handle;
     esp_err_t err = nvs_open("storage", NVS_READONLY, &my_handle);
     if (err != ESP_OK) {
@@ -239,13 +248,24 @@ static esp_err_t get_stored_remote_bda(uint8_t *remote_bda) {
     }
 
     size_t length = ESP_BD_ADDR_LEN;
-    err = nvs_get_blob(my_handle, "remote_bda", remote_bda, &length);
+
+    // Allocate space for the blob
+    uint8_t *data = malloc(length);
+    if (!data) {
+        ESP_LOGE(__func__, "Memory allocation failed!");
+        nvs_close(my_handle);
+        return err;
+    }
+
+    // Read the blob data
+    err = nvs_get_blob(my_handle, bda_key, data, &length);
     if (err == ESP_OK) {
         ESP_LOGI(__func__, "Data read successfully from NVS. Data length: %u", length);
     } else {
         ESP_LOGE(__func__, "Failed to read blob from NVS: %s", esp_err_to_name(err));
     }
 
+    free(data); // Free the allocated space
     nvs_close(my_handle);
     return err;
 }
