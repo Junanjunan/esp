@@ -225,7 +225,7 @@ static void store_remote_bda(const uint8_t* remote_bda) {
     if (err != ESP_OK) {
         ESP_LOGE("NVS_COMMIT", "Error (%s) committing changes to NVS in nvs_commit()", esp_err_to_name(err));
     }
-
+    ESP_LOGI("NVS_SET", "Remote BDA stored successfully in NVS");
     nvs_close(my_handle);
 }
 
@@ -240,8 +240,10 @@ static esp_err_t get_stored_remote_bda(uint8_t *remote_bda) {
 
     size_t length = ESP_BD_ADDR_LEN;
     err = nvs_get_blob(my_handle, "remote_bda", remote_bda, &length);
-    if (err != ESP_OK) {
-        ESP_LOGE("NVS_GET", "Error (%s) reading remote BDA from NVS in nvs_get_blob()", esp_err_to_name(err));
+    if (err == ESP_OK) {
+        ESP_LOGI(__func__, "Data read successfully from NVS. Data length: %u", length);
+    } else {
+        ESP_LOGE(__func__, "Failed to read blob from NVS: %s", esp_err_to_name(err));
     }
 
     nvs_close(my_handle);
