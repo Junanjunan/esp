@@ -12,6 +12,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
+#include "freertos/semphr.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
@@ -29,14 +30,43 @@
 #include "esp_hidd.h"
 #include "esp_hid_gap.h"
 
+#include "driver/gpio.h"
+
+#define REPORT_PROTOCOL_KEYBOARD_REPORT_SIZE    (8)
+#define REPORT_BUFFER_SIZE                      REPORT_PROTOCOL_KEYBOARD_REPORT_SIZE
+
+#define ROW_NUM 2
+#define COL_NUM 2
+
 static const char *TAG = "HID_DEV_DEMO";
+
+int row_pins[ROW_NUM] = {18, 19};
+int col_pins[COL_NUM] = {32, 33};
+
+// Define a 2x2 array corresponding to the matrix layout with HID keycodes
+uint8_t keycodes[ROW_NUM][COL_NUM] = {
+    {0x04, 0x05},  // HID keycodes for 'a', 'b'
+    {0x06, 0x07}   // HID keycodes for 'c', 'd'
+};
+
+// Last recorded state of each key
+bool last_key_state[ROW_NUM][COL_NUM] = {0};
+
+// Time since the last repeat was sent for each key
+uint32_t last_key_time[ROW_NUM][COL_NUM] = {0};
+
+// Debounce time and repeat delay
+const uint32_t DEBOUNCE_TIME = 50; // 50 ms debounce period
+const uint32_t REPEAT_DELAY = 500; // 500 ms repeat delay
 
 typedef struct
 {
+    SemaphoreHandle_t keyboard_mutex;
     TaskHandle_t task_hdl;
     esp_hidd_dev_t *hid_dev;
     uint8_t protocol_mode;
-    uint8_t *buffer;
+    //uint8_t *buffer;
+    uint8_t buffer[REPORT_BUFFER_SIZE];
 } local_param_t;
 
 static local_param_t s_ble_hid_param = {0};
@@ -100,6 +130,95 @@ const unsigned char keyboardReportMap[] = { //7 bytes input (modifiers, resrvd, 
 
     // 65 bytes
 };
+
+void matrix_keypad_init(void) {
+    // Initialize row pins
+    for (int i = 0; i < ROW_NUM; ++i) {
+        gpio_set_direction(row_pins[i], GPIO_MODE_OUTPUT);
+    }
+
+    // Initialize column pins with pull-up resistors
+    for (int i = 0; i < COL_NUM; ++i) {
+        gpio_set_direction(col_pins[i], GPIO_MODE_INPUT);
+        gpio_set_pull_mode(col_pins[i], GPIO_PULLUP_ONLY);
+    }
+}
+
+uint8_t get_hid_keycode_from_matrix(uint8_t row, uint8_t col) {
+    // Check the bounds of row and col to ensure they are within the matrix size
+    if (row >= 2 || col >= 2) {
+        return 0x00;  // Return 0x00 for no event if out of bounds
+    }
+
+    return keycodes[row][col];  // Return the HID keycode from the matrix
+}
+
+// Function to send a keyboard report
+void send_keyboard_report(uint8_t keycode) {
+    xSemaphoreTake(s_ble_hid_param.keyboard_mutex, portMAX_DELAY);
+    ESP_LOGI(__func__, "Sending keyboard report!!!!!!: %d", keycode);
+    memset(s_ble_hid_param.buffer, 0, REPORT_BUFFER_SIZE);
+    s_ble_hid_param.buffer[2] = keycode; // Set keycode in the buffer from the matrix gpio input
+    //esp_ble_gatts_send_indicate();
+    xSemaphoreGive(s_ble_hid_param.keyboard_mutex);
+}
+
+void send_report_with_delay(bool is_key_pressed, int row, int col, uint32_t current_time) {
+    if (is_key_pressed)
+    {
+        if (!last_key_state[row][col]) 
+        {
+            if (current_time - last_key_time[row][col] > DEBOUNCE_TIME) {
+            last_key_state[row][col] = true;
+            last_key_time[row][col] = current_time;
+            send_keyboard_report(keycodes[row][col]);  // Initial key press
+            }
+        }
+        else
+        {
+            if (current_time - last_key_time[row][col] > REPEAT_DELAY) {
+                last_key_time[row][col] = current_time;
+                send_keyboard_report(keycodes[row][col]);  // Repeat key press
+            }
+        }
+    }
+    else
+    {
+        if (last_key_state[row][col]) {
+            last_key_state[row][col] = false;
+            send_keyboard_report(0x00);  // Key release
+        }
+    }
+}
+
+void matrix_keypad_scan(void) {
+    uint32_t current_time = xTaskGetTickCount() * portTICK_PERIOD_MS;  // Get the current tick count in ms
+    for (int row = 0; row < ROW_NUM; ++row) {
+        // Set current row low
+        gpio_set_level(row_pins[row], 0);
+
+        for (int col = 0; col < COL_NUM; ++col) {
+            bool is_key_pressed = (gpio_get_level(col_pins[col]) == 0);  // Read the current key state (pressed is low)
+            if (!is_key_pressed) {
+                ESP_LOGI(__func__, "Row: %d, Col: %d, Key pressed: %d", row, col, is_key_pressed);
+            }
+            send_report_with_delay(is_key_pressed, row, col, current_time);
+        }
+
+        // Set current row high again
+        gpio_set_level(row_pins[row], 1);
+    }
+}
+
+// Task to simulate key press
+void keyboard_task(void *pvParameters) {
+    const char *TAG = "keyboard_task";
+    ESP_LOGI(TAG, "Starting keyboard task");
+    for (;;) {
+        matrix_keypad_scan();
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+}
 
 static void char_to_code(uint8_t *buffer, char ch)
 {
@@ -224,7 +343,8 @@ void ble_hid_task_start_up(void)
         return;
     }
     /* Nimble Specific */
-    xTaskCreate(ble_hid_demo_task_kbd, "ble_hid_demo_task_kbd", 3 * 1024, NULL, configMAX_PRIORITIES - 3,
+    s_ble_hid_param.keyboard_mutex = xSemaphoreCreateMutex();
+    xTaskCreate(keyboard_task, "keyboard_task", 4 * 1024, NULL, configMAX_PRIORITIES - 3,
                 &s_ble_hid_param.task_hdl);
 }
 
@@ -234,6 +354,12 @@ void ble_hid_task_shut_down(void)
         vTaskDelete(s_ble_hid_param.task_hdl);
         s_ble_hid_param.task_hdl = NULL;
     }
+
+    if (s_ble_hid_param.keyboard_mutex) {
+        vSemaphoreDelete(s_ble_hid_param.keyboard_mutex);
+        s_ble_hid_param.keyboard_mutex = NULL;
+    }
+    return;
 }
 
 static void ble_hidd_event_callback(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)
@@ -243,6 +369,10 @@ static void ble_hidd_event_callback(void *handler_args, esp_event_base_t base, i
     static const char *TAG = "HID_DEV_BLE";
 
     switch (event) {
+    case ESP_HIDD_ANY_EVENT: {
+        ESP_LOGI(TAG, "ESP_HIDD_ANY_EVENT");
+        break;
+    }
     case ESP_HIDD_START_EVENT: {
         ESP_LOGI(TAG, "START");
         esp_hid_ble_gap_adv_start();
@@ -253,10 +383,12 @@ static void ble_hidd_event_callback(void *handler_args, esp_event_base_t base, i
         break;
     }
     case ESP_HIDD_PROTOCOL_MODE_EVENT: {
+        ESP_LOGI(TAG, "ESP_HIDD_PROTOCOL_MODE_EVENT");
         ESP_LOGI(TAG, "PROTOCOL MODE[%u]: %s", param->protocol_mode.map_index, param->protocol_mode.protocol_mode ? "REPORT" : "BOOT");
         break;
     }
     case ESP_HIDD_CONTROL_EVENT: {
+        ESP_LOGI(TAG, "ESP_HIDD_CONTROL_EVENT");
         ESP_LOGI(TAG, "CONTROL[%u]: %sSUSPEND", param->control.map_index, param->control.control ? "EXIT_" : "");
         if (param->control.control)
         {
@@ -269,16 +401,22 @@ static void ble_hidd_event_callback(void *handler_args, esp_event_base_t base, i
     break;
     }
     case ESP_HIDD_OUTPUT_EVENT: {
+        ESP_LOGI(TAG, "ESP_HIDD_OUTPUT_EVENT");
         ESP_LOGI(TAG, "OUTPUT[%u]: %8s ID: %2u, Len: %d, Data:", param->output.map_index, esp_hid_usage_str(param->output.usage), param->output.report_id, param->output.length);
+        ESP_LOG_BUFFER_HEX(TAG, param->output.data, param->output.length);
+        ESP_LOG_BUFFER_HEX(TAG, param->output.data, param->output.length);
+        ESP_LOG_BUFFER_HEX(TAG, param->output.data, param->output.length);
         ESP_LOG_BUFFER_HEX(TAG, param->output.data, param->output.length);
         break;
     }
     case ESP_HIDD_FEATURE_EVENT: {
+        ESP_LOGI(TAG, "ESP_HIDD_FEATURE_EVENT");
         ESP_LOGI(TAG, "FEATURE[%u]: %8s ID: %2u, Len: %d, Data:", param->feature.map_index, esp_hid_usage_str(param->feature.usage), param->feature.report_id, param->feature.length);
         ESP_LOG_BUFFER_HEX(TAG, param->feature.data, param->feature.length);
         break;
     }
     case ESP_HIDD_DISCONNECT_EVENT: {
+        ESP_LOGI(TAG, "ESP_HIDD_DISCONNECT_EVENT");
         ESP_LOGI(TAG, "DISCONNECT: %s", esp_hid_disconnect_reason_str(esp_hidd_dev_transport_get(param->disconnect.dev), param->disconnect.reason));
         ble_hid_task_shut_down();
         esp_hid_ble_gap_adv_start();
@@ -286,6 +424,10 @@ static void ble_hidd_event_callback(void *handler_args, esp_event_base_t base, i
     }
     case ESP_HIDD_STOP_EVENT: {
         ESP_LOGI(TAG, "STOP");
+        break;
+    }
+    case ESP_HIDD_MAX_EVENT: {
+        ESP_LOGI(TAG, "ESP_HIDD_MAX_EVENT");
         break;
     }
     default:
