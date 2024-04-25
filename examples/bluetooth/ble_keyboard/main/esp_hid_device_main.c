@@ -156,10 +156,9 @@ uint8_t get_hid_keycode_from_matrix(uint8_t row, uint8_t col) {
 // Function to send a keyboard report
 void send_keyboard_report(uint8_t keycode) {
     xSemaphoreTake(s_ble_hid_param.keyboard_mutex, portMAX_DELAY);
-    ESP_LOGI(__func__, "Sending keyboard report!!!!!!: %d", keycode);
     memset(s_ble_hid_param.buffer, 0, REPORT_BUFFER_SIZE);
     s_ble_hid_param.buffer[2] = keycode; // Set keycode in the buffer from the matrix gpio input
-    //esp_ble_gatts_send_indicate();
+    esp_hidd_dev_input_set(s_ble_hid_param.hid_dev, 1, 2, s_ble_hid_param.buffer, 8);
     xSemaphoreGive(s_ble_hid_param.keyboard_mutex);
 }
 
@@ -172,6 +171,7 @@ void send_report_with_delay(bool is_key_pressed, int row, int col, uint32_t curr
             last_key_state[row][col] = true;
             last_key_time[row][col] = current_time;
             send_keyboard_report(keycodes[row][col]);  // Initial key press
+            ESP_LOGI(__func__, "Sending keyboard report!!!!!!: %d", keycodes[row][col]);
             }
         }
         else
