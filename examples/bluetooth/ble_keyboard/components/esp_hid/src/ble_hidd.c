@@ -754,25 +754,87 @@ void esp_hidd_gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatt
     }
 
     if (event == ESP_GATTS_REG_EVT) {
+        ESP_LOGV(TAG, "REG app_id %04x, status %d", param->reg.app_id, param->reg.status);
         if (param->reg.status != ESP_GATT_OK) {
             ESP_LOGE(TAG, "Reg app failed, app_id %04x, status %d", param->reg.app_id, param->reg.status);
             return;
         } else {
             if (param->reg.app_id == ESP_GATT_UUID_DEVICE_INFO_SVC) {
+                ESP_LOGI(TAG, "1Device Info Service registered, app_id %04x, gatts_if %u", param->reg.app_id, gatts_if);
                 s_dev->info_svc.gatt_if = gatts_if;
             } else if (param->reg.app_id == ESP_GATT_UUID_BATTERY_SERVICE_SVC) {
+                ESP_LOGI(TAG, "2Device Info Service registered, app_id %04x, gatts_if %u", param->reg.app_id, gatts_if);
                 s_dev->bat_svc.gatt_if = gatts_if;
             } else if (param->reg.app_id >= ESP_GATT_UUID_HID_SVC && param->reg.app_id < (ESP_GATT_UUID_HID_SVC + s_dev->devices_len)) {
                 ESP_LOGV(TAG, "HID SVC[%u] IF: %d", param->reg.app_id - ESP_GATT_UUID_HID_SVC, gatts_if);
+                ESP_LOGI(TAG, "3Device Info Service registered, app_id %04x, gatts_if %u", param->reg.app_id, gatts_if);
                 s_dev->devices[param->reg.app_id - ESP_GATT_UUID_HID_SVC].hid_svc.gatt_if = gatts_if;
             } else {
                 ESP_LOGE(TAG, "Unknown Application, app_id %04x", param->reg.app_id);
                 return;
             }
         }
+        ESP_LOGV(TAG, "REG app_id %04x, status %d", param->reg.app_id, param->reg.status);
     } else if (event == ESP_GATTS_CREAT_ATTR_TAB_EVT) {
         free(_last_db);
         _last_db = NULL;
+    } else if (event == ESP_GATTS_READ_EVT) {
+        ESP_LOGV(TAG, "READ EVENT");
+    } else if (event == ESP_GATTS_WRITE_EVT) {
+        ESP_LOGV(TAG, "WRITE EVENT");
+    } else if (event == ESP_GATTS_EXEC_WRITE_EVT) {
+        ESP_LOGV(TAG, "EXEC WRITE EVENT");
+    } else if (event == ESP_GATTS_MTU_EVT) {
+        ESP_LOGV(TAG, "MTU EVENT");
+    } else if (event == ESP_GATTS_CONF_EVT) {
+        ESP_LOGV(TAG, "CONFIRMATION EVENT");
+    } else if (event == ESP_GATTS_UNREG_EVT) {
+        ESP_LOGV(TAG, "UNREGISTER EVENT");
+    } else if (event == ESP_GATTS_CREATE_EVT) {
+        ESP_LOGV(TAG, "SERVICE CREATED EVENT");
+        /*
+            struct gatts_create_evt_param {
+                esp_gatt_status_t status;       // Operation status
+                uint16_t service_handle;        // Service attribute handle
+                esp_gatt_srvc_id_t service_id;  // Service id, include service uuid and other information
+            } create;                           // Gatt server callback param of ESP_GATTS_CREATE_EVT
+        */
+        //param->create.service_handle;
+        //param->create.service_id;
+    } else if (event == ESP_GATTS_ADD_INCL_SRVC_EVT) {
+        ESP_LOGV(TAG, "INCLUDE SERVICE ADDED EVENT");
+    } else if (event == ESP_GATTS_ADD_CHAR_EVT) {
+        ESP_LOGV(TAG, "CHARACTERISTIC ADDED EVENT");
+    } else if (event == ESP_GATTS_ADD_CHAR_DESCR_EVT) {
+        ESP_LOGV(TAG, "DESCRIPTOR ADDED EVENT");
+    } else if (event == ESP_GATTS_DELETE_EVT) {
+        ESP_LOGV(TAG, "SERVICE DELETED EVENT");
+    } else if (event == ESP_GATTS_START_EVT) {
+        ESP_LOGV(TAG, "SERVICE STARTED EVENT");
+    } else if (event == ESP_GATTS_STOP_EVT) {
+        ESP_LOGV(TAG, "SERVICE STOPPED EVENT");
+    } else if (event == ESP_GATTS_CONNECT_EVT) {
+        ESP_LOGV(TAG, "CONNECT EVENT");
+        uint16_t conn_id = param->connect.conn_id;
+        ESP_LOGI(TAG, "Connection ID: %d", conn_id);
+    } else if (event == ESP_GATTS_DISCONNECT_EVT) {
+        ESP_LOGV(TAG, "DISCONNECT EVENT");
+    } else if (event == ESP_GATTS_OPEN_EVT) {
+        ESP_LOGV(TAG, "OPEN EVENT");
+    } else if (event == ESP_GATTS_CANCEL_OPEN_EVT) {
+        ESP_LOGV(TAG, "CANCEL OPEN EVENT");
+    } else if (event == ESP_GATTS_CLOSE_EVT) {
+        ESP_LOGV(TAG, "CLOSE EVENT");
+    } else if (event == ESP_GATTS_LISTEN_EVT) {
+        ESP_LOGV(TAG, "LISTEN EVENT");
+    } else if (event == ESP_GATTS_CONGEST_EVT) {
+        ESP_LOGV(TAG, "CONGESTION EVENT");
+    } else if (event == ESP_GATTS_RESPONSE_EVT) {
+        ESP_LOGV(TAG, "RESPONSE EVENT");
+    } else if (event == ESP_GATTS_SET_ATTR_VAL_EVT) {
+        ESP_LOGV(TAG, "SET ATTRIBUTE VALUE EVENT");
+    } else if (event == ESP_GATTS_SEND_SERVICE_CHANGE_EVT) {
+        ESP_LOGV(TAG, "SEND SERVICE CHANGE EVENT");
     }
 
     if (s_dev->bat_svc.gatt_if && gatts_if == s_dev->bat_svc.gatt_if) {
