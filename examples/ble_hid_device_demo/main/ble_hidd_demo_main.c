@@ -51,7 +51,6 @@
 
 static uint16_t hid_conn_id = 0;
 static bool sec_conn = false;
-static bool send_volum_up = false;
 #define CHAR_DECLARATION_SIZE   (sizeof(uint8_t))
 
 static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param);
@@ -171,19 +170,10 @@ void hid_demo_task(void *pvParameters)
     while(1) {
         vTaskDelay(2000 / portTICK_PERIOD_MS);
         if (sec_conn) {
-            ESP_LOGI(HID_DEMO_TAG, "Send the volume");
-            send_volum_up = true;
-            //uint8_t key_vaule = {HID_KEY_A};
-            //esp_hidd_send_keyboard_value(hid_conn_id, 0, &key_vaule, 1);
-            esp_hidd_send_consumer_value(hid_conn_id, HID_CONSUMER_VOLUME_UP, true);
+            ESP_LOGI(HID_DEMO_TAG, "send key 'A'");
+            uint8_t key_vaule = {HID_KEY_A};
+            esp_hidd_send_keyboard_value(hid_conn_id, 0, &key_vaule, 1);
             vTaskDelay(3000 / portTICK_PERIOD_MS);
-            if (send_volum_up) {
-                send_volum_up = false;
-                esp_hidd_send_consumer_value(hid_conn_id, HID_CONSUMER_VOLUME_UP, false);
-                esp_hidd_send_consumer_value(hid_conn_id, HID_CONSUMER_VOLUME_DOWN, true);
-                vTaskDelay(3000 / portTICK_PERIOD_MS);
-                esp_hidd_send_consumer_value(hid_conn_id, HID_CONSUMER_VOLUME_DOWN, false);
-            }
         }
     }
 }
