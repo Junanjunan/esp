@@ -57,6 +57,22 @@ static void gatts_profile_b_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
 
 #define PREPARE_BUF_MAX_SIZE 1024
 
+#define ESP_HID_APPEARANCE_KEYBOARD         0x03C1
+
+static uint16_t report_char_handle; // Assuming this is for key reports
+
+void send_key_press_notification(esp_gatt_if_t gatts_if, uint16_t conn_id, uint8_t* key_press_data, size_t len) {
+    ESP_LOGI(__func__, "2");
+    esp_ble_gatts_send_indicate(gatts_if, conn_id, report_char_handle, len, key_press_data, false);
+}
+
+void handle_key_press(esp_gatt_if_t gatts_if, uint16_t conn_id) {
+    ESP_LOGI(__func__, "1");
+    uint8_t key_press_data[] = {0x00, 0x04}; // Example: 'a' key press in a simple keyboard report
+    send_key_press_notification(gatts_if, conn_id, key_press_data, sizeof(key_press_data));
+}
+
+
 static uint8_t char1_str[] = {0x11,0x22,0x33};
 static esp_gatt_char_prop_t a_property = 0;
 static esp_gatt_char_prop_t b_property = 0;
@@ -84,12 +100,13 @@ static uint8_t raw_scan_rsp_data[] = {     // Length 15, Data Type 9 (Complete L
 };
 #else
 
-static uint8_t adv_service_uuid128[32] = {
+static uint8_t adv_service_uuid128[] = {
     /* LSB <--------------------------------------------------------------------------------> MSB */
     //first uuid, 16bit, [12],[13] is the value
-    0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xEE, 0x00, 0x00, 0x00,
+    // 0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xEE, 0x00, 0x00, 0x00,
+    0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0x12, 0x18, 0x00, 0x00,
     //second uuid, 32bit, [12], [13], [14], [15] is the value
-    0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00,
+    // 0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00,
 };
 
 // The length of adv data must be less than 31 bytes
@@ -101,29 +118,30 @@ static esp_ble_adv_data_t adv_data = {
     .include_txpower = false,
     .min_interval = 0x0006, //slave connection min interval, Time = min_interval * 1.25 msec
     .max_interval = 0x0010, //slave connection max interval, Time = max_interval * 1.25 msec
-    .appearance = 0x00,
+    .appearance = ESP_HID_APPEARANCE_KEYBOARD,
     .manufacturer_len = 0, //TEST_MANUFACTURER_DATA_LEN,
     .p_manufacturer_data =  NULL, //&test_manufacturer[0],
     .service_data_len = 0,
     .p_service_data = NULL,
     .service_uuid_len = sizeof(adv_service_uuid128),
-    .p_service_uuid = adv_service_uuid128,
-    .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
+    .p_service_uuid = (uint8_t *)adv_service_uuid128,
+    // .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
+    .flag = 0x6,
 };
 // scan response data
 static esp_ble_adv_data_t scan_rsp_data = {
     .set_scan_rsp = true,
     .include_name = true,
     .include_txpower = true,
-    //.min_interval = 0x0006,
-    //.max_interval = 0x0010,
+    .min_interval = 0x0006,
+    .max_interval = 0x0010,
     .appearance = 0x00,
     .manufacturer_len = 0, //TEST_MANUFACTURER_DATA_LEN,
     .p_manufacturer_data =  NULL, //&test_manufacturer[0],
     .service_data_len = 0,
     .p_service_data = NULL,
     .service_uuid_len = sizeof(adv_service_uuid128),
-    .p_service_uuid = adv_service_uuid128,
+    .p_service_uuid = (uint8_t *)adv_service_uuid128,
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
 
@@ -200,6 +218,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         break;
 #else
     case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
+        ESP_LOGI(GATTS_TAG, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT");
         adv_config_done &= (~adv_config_flag);
         if (adv_config_done == 0){
             esp_ble_gap_start_advertising(&adv_params);
@@ -216,6 +235,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         //advertising start complete event to indicate advertising start successfully or failed
         if (param->adv_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {
             ESP_LOGE(GATTS_TAG, "Advertising start failed");
+        } else {
+            ESP_LOGI(GATTS_TAG, "Advertising started successfully");
         }
         break;
     case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
@@ -301,6 +322,7 @@ void example_exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble
 }
 
 static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
+    ESP_LOGI(__func__, "a event handler entered");
     switch (event) {
     case ESP_GATTS_REG_EVT:
         ESP_LOGI(GATTS_TAG, "REGISTER_APP_EVT, status %d, app_id %d", param->reg.status, param->reg.app_id);
@@ -313,6 +335,16 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
         if (set_dev_name_ret){
             ESP_LOGE(GATTS_TAG, "set device name failed, error code = %x", set_dev_name_ret);
         }
+
+        esp_gatt_srvc_id_t hid_service_id;
+        hid_service_id.is_primary = true;
+        hid_service_id.id.inst_id = 0x00;
+        hid_service_id.id.uuid.len = ESP_UUID_LEN_16;
+        hid_service_id.id.uuid.uuid.uuid16 = (uint8_t *)adv_service_uuid128;
+        esp_ble_gatts_create_service(gatts_if, &hid_service_id, 10); // Adjust handle count as needed
+
+        // break;
+
 #ifdef CONFIG_SET_RAW_ADV_DATA
         esp_err_t raw_adv_ret = esp_ble_gap_config_adv_data_raw(raw_adv_data, sizeof(raw_adv_data));
         if (raw_adv_ret){
@@ -456,6 +488,7 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
         gl_profile_tab[PROFILE_A_APP_ID].descr_handle = param->add_char_descr.attr_handle;
         ESP_LOGI(GATTS_TAG, "ADD_DESCR_EVT, status %d, attr_handle %d, service_handle %d",
                  param->add_char_descr.status, param->add_char_descr.attr_handle, param->add_char_descr.service_handle);
+        esp_ble_gap_start_advertising(&adv_params);
         break;
     case ESP_GATTS_DELETE_EVT:
         break;
@@ -623,11 +656,14 @@ static void gatts_profile_b_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
     case ESP_GATTS_STOP_EVT:
         break;
     case ESP_GATTS_CONNECT_EVT:
-        ESP_LOGI(GATTS_TAG, "CONNECT_EVT, conn_id %d, remote %02x:%02x:%02x:%02x:%02x:%02x:",
+        ESP_LOGI(GATTS_TAG, "CONNECT_EVTEEEEEE, conn_id %d, remote %02x:%02x:%02x:%02x:%02x:%02x:",
                  param->connect.conn_id,
                  param->connect.remote_bda[0], param->connect.remote_bda[1], param->connect.remote_bda[2],
                  param->connect.remote_bda[3], param->connect.remote_bda[4], param->connect.remote_bda[5]);
         gl_profile_tab[PROFILE_B_APP_ID].conn_id = param->connect.conn_id;
+
+        // Simulate 'a' key press after connection
+        handle_key_press(gatts_if, param->connect.conn_id);
         break;
     case ESP_GATTS_CONF_EVT:
         ESP_LOGI(GATTS_TAG, "ESP_GATTS_CONF_EVT status %d attr_handle %d", param->conf.status, param->conf.handle);
