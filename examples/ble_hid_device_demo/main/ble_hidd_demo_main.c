@@ -95,6 +95,7 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
 {
     switch(event) {
         case ESP_HIDD_EVENT_REG_FINISH: {
+            ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_REG_FINISH");
             if (param->init_finish.state == ESP_HIDD_INIT_OK) {
                 //esp_bd_addr_t rand_addr = {0x04,0x11,0x11,0x11,0x11,0x05};
                 esp_ble_gap_set_device_name(HIDD_DEVICE_NAME);
@@ -104,18 +105,20 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
             break;
         }
         case ESP_BAT_EVENT_REG: {
+            ESP_LOGI(HID_DEMO_TAG, "ESP_BAT_EVENT_REG");
             break;
         }
         case ESP_HIDD_EVENT_DEINIT_FINISH:
-	     break;
+            ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_DEINIT_FINISH");
+	        break;
 		case ESP_HIDD_EVENT_BLE_CONNECT: {
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT");
             hid_conn_id = param->connect.conn_id;
             break;
         }
         case ESP_HIDD_EVENT_BLE_DISCONNECT: {
-            sec_conn = false;
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_DISCONNECT");
+            sec_conn = false;
             esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
         }
