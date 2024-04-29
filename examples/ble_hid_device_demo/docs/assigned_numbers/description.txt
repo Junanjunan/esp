@@ -1,0 +1,13 @@
+main > ble_hidd_demo_main.c
+
+  static uint8_t hidd_service_uuid128[] = {
+      /* LSB <--------------------------------------------------------------------------------> MSB */
+      //first uuid, 16bit, [12],[13] is the value
+      0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0x12, 0x18, 0x00, 0x00,
+  };
+
+  0x12, 0x18  ([12], [13] index)
+  -> 0x1812
+  -> HID device (Search '0x1812' in pdf(Bluetooth_SIG_Assigned_Number: it is from https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Assigned_Numbers/out/en/Assigned_Numbers.pdf?v=1714375662004))
+
+  https://taltal-dev-note.tistory.com/306
