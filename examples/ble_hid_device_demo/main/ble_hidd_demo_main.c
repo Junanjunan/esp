@@ -399,6 +399,8 @@ void hid_demo_task(void *pvParameters)
             ESP_LOGI(HID_DEMO_TAG, "send key 'A'");
             uint8_t key_vaule = {HID_KEY_A};
             esp_hidd_send_keyboard_value(hid_conn_id, 0, &key_vaule, 1);
+            uint8_t stop_value = {HID_KEY_RESERVED};
+            esp_hidd_send_keyboard_value(hid_conn_id, 0, &stop_value, 1);
             vTaskDelay(3000 / portTICK_PERIOD_MS);
         }
     }
