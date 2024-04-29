@@ -1,0 +1,46 @@
+app_main
+  nvs
+    init
+  bt_controlloer
+    mem_release
+    init
+    enable
+  bluedroid
+    init
+    enable
+  hidd_profile
+    init
+      hidd_le_env_t hidd_le_env   -> structure - /* service engine control block */
+        hidd_clcb_t     hidd_clcb[HID_MAX_APPS] -> structure
+          bool            in_use;
+          bool            congest;
+          uint16_t        conn_id;
+          bool            connected;
+          esp_bd_addr_t   remote_bda;           -> uint8_t  -> __uint8_t  -> unsigned char
+          uint32_t        trans_id;
+          uint8_t         cur_srvc_id;
+        esp_gatt_if_t   gatt_if                 -> uint8_t - /*!< Gatt interface type, different application on GATT client use different gatt_if */
+        bool enabled
+        bool is_task
+        is_primery
+        hidd_inst_t         hidd_inst               -> structure
+          uint8_t               app_id;                                   // hidd profile id
+          uint16_t              ntf_handle;                               // Notified handle
+          uint16_t              att_tbl[HIDD_LE_IDX_NB];                  //Attribute handle Table
+          hidd_feature_t        hidd_feature[HIDD_LE_NB_HIDS_INST_MAX];   // Supported Features
+          uint8_t               proto_mode[HIDD_LE_NB_HIDS_INST_MAX];     // Current Protocol Mode
+          uint8_t               hids_nb;                                  // Number of HIDS added in the database// Number of HIDS added in the database
+          uint8_t               pending_evt;
+          uint16_t              pending_hal;
+        esp_hidd_event_cb_t   hidd_cb;              -> callback function type: HID device event callback function type
+          typedef void (*esp_hidd_event_cb_t) (esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param);
+        uint8_t               inst_id;
+  register_callback
+    gap_register_callback
+      gap_event_handler
+    hidd_register_callbacks
+      hidd_event_callback
+  gap_set_security_param
+    AUTHEN_REQ_MODE, IOCAP_MODE, MAX_KEY_SIZE, SET_INIT_KEY, SET_RSP_KEY
+  Main task start
+    xTaskCreate(&hid_demo_task, ...)
