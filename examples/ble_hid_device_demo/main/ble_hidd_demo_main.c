@@ -54,6 +54,7 @@ static bool sec_conn = false;
 #define CHAR_DECLARATION_SIZE   (sizeof(uint8_t))
 
 static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param);
+void hid_demo_task(void *pvParameters);
 
 #define HIDD_DEVICE_NAME            "ESP32 BLE Keyboard"
 #define HID_APPEARANCE_KEYBOARD     0x03C1
@@ -167,6 +168,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             ESP_LOGI(HID_DEMO_TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
             if(!param->ble_security.auth_cmpl.success) {
                 ESP_LOGE(HID_DEMO_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
+            } else {
+                xTaskCreate(&hid_demo_task, "hid_task", 2048, NULL, 5, NULL);
             }
             break;
         case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
@@ -470,6 +473,4 @@ void app_main(void)
     and the init key means which key you can distribute to the slave. */
     esp_ble_gap_set_security_param(ESP_BLE_SM_SET_INIT_KEY, &init_key, sizeof(uint8_t));
     esp_ble_gap_set_security_param(ESP_BLE_SM_SET_RSP_KEY, &rsp_key, sizeof(uint8_t));
-
-    xTaskCreate(&hid_demo_task, "hid_task", 2048, NULL, 5, NULL);
 }
