@@ -63,6 +63,12 @@ static uint8_t hidd_service_uuid128[] = {
     0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0x12, 0x18, 0x00, 0x00,
 };
 
+/*
+ * Supplement to the Bluetooth Core Specification
+ * Source: https://www.bluetooth.com/specifications/specs/core-specification-supplement-9/
+    - Reference: AD in 1 DATA TYPES DEFINITIONS AND FORMATS Table 1.1.
+    - Downloaded pdf: docs/advertising_data/CSS_v9.pdf (page 9)
+*/
 static esp_ble_adv_data_t hidd_adv_data = {
     .set_scan_rsp = false,
     .include_name = true,
