@@ -1,0 +1,9 @@
+esp_ble_gap_set_security_param
+    Whether the function is really executed.
+    That function is sperated with declaration and definition.
+    The declaration of the function is done normally.
+    But the definition of the function is in the preprocessor.
+      - I think there will be no error in compiling.
+      - There will be error in linking.
+        But, when I flashed to chip, I didn't see any error about linking.
+        I have to check about this.
