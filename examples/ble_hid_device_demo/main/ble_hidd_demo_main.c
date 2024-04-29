@@ -138,30 +138,246 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
     switch (event) {
-    case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
-        esp_ble_gap_start_advertising(&hidd_adv_params);
-        break;
-     case ESP_GAP_BLE_SEC_REQ_EVT:
-        for(int i = 0; i < ESP_BD_ADDR_LEN; i++) {
-             ESP_LOGD(HID_DEMO_TAG, "%x:",param->ble_security.ble_req.bd_addr[i]);
-        }
-        esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
-	 break;
-     case ESP_GAP_BLE_AUTH_CMPL_EVT:
-        sec_conn = true;
-        esp_bd_addr_t bd_addr;
-        memcpy(bd_addr, param->ble_security.auth_cmpl.bd_addr, sizeof(esp_bd_addr_t));
-        ESP_LOGI(HID_DEMO_TAG, "remote BD_ADDR: %08x%04x",\
-                (bd_addr[0] << 24) + (bd_addr[1] << 16) + (bd_addr[2] << 8) + bd_addr[3],
-                (bd_addr[4] << 8) + bd_addr[5]);
-        ESP_LOGI(HID_DEMO_TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
-        ESP_LOGI(HID_DEMO_TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
-        if(!param->ble_security.auth_cmpl.success) {
-            ESP_LOGE(HID_DEMO_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
-        }
-        break;
-    default:
-        break;
+        case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
+            esp_ble_gap_start_advertising(&hidd_adv_params);
+            break;
+        case ESP_GAP_BLE_SEC_REQ_EVT:
+            for(int i = 0; i < ESP_BD_ADDR_LEN; i++) {
+                ESP_LOGD(HID_DEMO_TAG, "%x:",param->ble_security.ble_req.bd_addr[i]);
+            }
+            esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
+            break;
+        case ESP_GAP_BLE_AUTH_CMPL_EVT:
+            sec_conn = true;
+            esp_bd_addr_t bd_addr;
+            memcpy(bd_addr, param->ble_security.auth_cmpl.bd_addr, sizeof(esp_bd_addr_t));
+            ESP_LOGI(HID_DEMO_TAG, "remote BD_ADDR: %08x%04x",\
+                    (bd_addr[0] << 24) + (bd_addr[1] << 16) + (bd_addr[2] << 8) + bd_addr[3],
+                    (bd_addr[4] << 8) + bd_addr[5]);
+            ESP_LOGI(HID_DEMO_TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
+            ESP_LOGI(HID_DEMO_TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
+            if(!param->ble_security.auth_cmpl.success) {
+                ESP_LOGE(HID_DEMO_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
+            }
+            break;
+        case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SCAN_RESULT_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_RESULT_EVT");
+            break;
+        case ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SCAN_RSP_DATA_RAW_SET_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_RSP_DATA_RAW_SET_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_START_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_START_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_KEY_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_KEY_EVT");
+            break;
+        case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PASSKEY_NOTIF_EVT");
+            break;
+        case ESP_GAP_BLE_PASSKEY_REQ_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PASSKEY_REQ_EVT");
+            break;
+        case ESP_GAP_BLE_OOB_REQ_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_OOB_REQ_EVT");
+            break;
+        case ESP_GAP_BLE_LOCAL_IR_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_LOCAL_IR_EVT");
+            break;
+        case ESP_GAP_BLE_LOCAL_ER_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_LOCAL_ER_EVT");
+            break;
+        case ESP_GAP_BLE_NC_REQ_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_NC_REQ_EVT");
+            break;
+        case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SET_STATIC_RAND_ADDR_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_STATIC_RAND_ADDR_EVT");
+            break;
+        case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT");
+            break;
+        case ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SET_LOCAL_PRIVACY_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_LOCAL_PRIVACY_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_GET_BOND_DEV_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_GET_BOND_DEV_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_UPDATE_DUPLICATE_EXCEPTIONAL_LIST_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_UPDATE_DUPLICATE_EXCEPTIONAL_LIST_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SET_CHANNELS_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_CHANNELS_EVT");
+            break;
+        case ESP_GAP_BLE_READ_PHY_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_READ_PHY_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SET_PREFERRED_DEFAULT_PHY_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_PREFERRED_DEFAULT_PHY_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SET_PREFERRED_PHY_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_PREFERRED_PHY_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_ADV_SET_RAND_ADDR_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_ADV_SET_RAND_ADDR_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_ADV_SET_PARAMS_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_ADV_SET_PARAMS_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_ADV_DATA_SET_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_ADV_DATA_SET_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_SCAN_RSP_DATA_SET_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_SCAN_RSP_DATA_SET_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_ADV_START_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_ADV_START_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_ADV_STOP_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_ADV_STOP_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_ADV_SET_REMOVE_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_ADV_SET_REMOVE_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_ADV_SET_CLEAR_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_ADV_SET_CLEAR_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_SET_PARAMS_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_SET_PARAMS_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_DATA_SET_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_DATA_SET_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_START_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_START_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_STOP_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_STOP_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_CREATE_SYNC_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_CREATE_SYNC_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_SYNC_CANCEL_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_SYNC_CANCEL_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_SYNC_TERMINATE_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_SYNC_TERMINATE_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_ADD_DEV_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_ADD_DEV_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_REMOVE_DEV_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_REMOVE_DEV_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_CLEAR_DEV_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_CLEAR_DEV_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SET_EXT_SCAN_PARAMS_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_EXT_SCAN_PARAMS_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_SCAN_START_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_SCAN_START_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_SCAN_STOP_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_SCAN_STOP_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PREFER_EXT_CONN_PARAMS_SET_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PREFER_EXT_CONN_PARAMS_SET_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PHY_UPDATE_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PHY_UPDATE_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EXT_ADV_REPORT_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EXT_ADV_REPORT_EVT");
+            break;
+        case ESP_GAP_BLE_SCAN_TIMEOUT_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_TIMEOUT_EVT");
+            break;
+        case ESP_GAP_BLE_ADV_TERMINATED_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_TERMINATED_EVT");
+            break;
+        case ESP_GAP_BLE_SCAN_REQ_RECEIVED_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_REQ_RECEIVED_EVT");
+            break;
+        case ESP_GAP_BLE_CHANNEL_SELECT_ALGORITHM_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_CHANNEL_SELECT_ALGORITHM_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_REPORT_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_REPORT_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_SYNC_LOST_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_SYNC_LOST_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_SYNC_ESTAB_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_SYNC_ESTAB_EVT");
+            break;
+        case ESP_GAP_BLE_SC_OOB_REQ_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SC_OOB_REQ_EVT");
+            break;
+        case ESP_GAP_BLE_SC_CR_LOC_OOB_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SC_CR_LOC_OOB_EVT");
+            break;
+        case ESP_GAP_BLE_GET_DEV_NAME_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_GET_DEV_NAME_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_RECV_ENABLE_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_RECV_ENABLE_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_SYNC_TRANS_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_SYNC_TRANS_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_SET_INFO_TRANS_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_SET_INFO_TRANS_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_SET_PAST_PARAMS_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_PAST_PARAMS_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_PERIODIC_ADV_SYNC_TRANS_RECV_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PERIODIC_ADV_SYNC_TRANS_RECV_EVT");
+            break;
+        case ESP_GAP_BLE_DTM_TEST_UPDATE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_DTM_TEST_UPDATE_EVT");
+            break;
+        case ESP_GAP_BLE_ADV_CLEAR_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_CLEAR_COMPLETE_EVT");
+            break;
+        case ESP_GAP_BLE_EVT_MAX:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EVT_MAX");
+            break;
+        default:
+            break;
     }
 }
 
