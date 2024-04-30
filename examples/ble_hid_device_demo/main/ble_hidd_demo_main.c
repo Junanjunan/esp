@@ -26,6 +26,7 @@
 #include "esp_bt_device.h"
 #include "driver/gpio.h"
 #include "hid_dev.h"
+#include "matrix_gpio.h"
 
 /**
  * Brief:
@@ -169,7 +170,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             if(!param->ble_security.auth_cmpl.success) {
                 ESP_LOGE(HID_DEMO_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
             } else {
-                xTaskCreate(&hid_demo_task, "hid_task", 2048, NULL, 5, NULL);
+                xTaskCreate(keyboard_task, "keyboard_task", 2048, (void *)(uintptr_t)hid_conn_id, 5, NULL);
             }
             break;
         case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
