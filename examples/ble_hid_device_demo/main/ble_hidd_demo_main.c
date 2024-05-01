@@ -210,7 +210,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             if(!param->ble_security.auth_cmpl.success) {
                 ESP_LOGE(HID_DEMO_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
             } else {
-                xTaskCreate(&hid_demo_task, "hid_task", 2048, NULL, 5, NULL);
+                keyboard_button_create(&cfg, &kbd_handle);
+                keyboard_button_register_cb(kbd_handle, cb_cfg, NULL);
             }
             break;
         case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
@@ -453,8 +454,6 @@ void hid_demo_task(void *pvParameters)
 
 void app_main(void)
 {
-    keyboard_button_create(&cfg, &kbd_handle);
-    keyboard_button_register_cb(kbd_handle, cb_cfg, NULL);
     esp_err_t ret;
 
     // Initialize NVS.
