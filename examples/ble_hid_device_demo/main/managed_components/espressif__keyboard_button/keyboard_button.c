@@ -231,7 +231,7 @@ static void IRAM_ATTR kbd_power_save_isr_handler(void* arg)
 
 esp_err_t keyboard_button_create(keyboard_btn_config_t *kbd_cfg, keyboard_btn_handle_t *kbd_handle)
 {
-    ESP_LOGI(TAG, "KeyBoard Button Version: %d.%d.%d", KEYBOARD_BUTTON_VER_MAJOR, KEYBOARD_BUTTON_VER_MINOR, KEYBOARD_BUTTON_VER_PATCH);
+    // ESP_LOGI(TAG, "KeyBoard Button Version: %d.%d.%d", KEYBOARD_BUTTON_VER_MAJOR, KEYBOARD_BUTTON_VER_MINOR, KEYBOARD_BUTTON_VER_PATCH);
 
     ESP_RETURN_ON_FALSE(kbd_cfg, ESP_ERR_INVALID_ARG, TAG, "Config cannot be NULL");
     ESP_RETURN_ON_FALSE(kbd_handle, ESP_ERR_INVALID_ARG, TAG, "keyboard handle cannot be NULL");
