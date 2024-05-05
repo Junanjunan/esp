@@ -91,9 +91,9 @@
 #define HID_KBD_FLAGS             HID_FLAGS_REMOTE_WAKE
 
 /* HID Report type */
-#define HID_REPORT_TYPE_INPUT       1
-#define HID_REPORT_TYPE_OUTPUT      2
-#define HID_REPORT_TYPE_FEATURE     3
+#define HID_REPORT_TYPE_INPUT_KEYBOARD       1
+#define HID_REPORT_TYPE_OUTPUT_KEYBOARD      2
+#define HID_REPORT_TYPE_FEATURE_KEYBOARD     3
 
 
 /// HID Service Attributes Indexes
