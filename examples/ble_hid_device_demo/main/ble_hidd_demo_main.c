@@ -28,6 +28,9 @@
 #include "hid_dev.h"
 #include "keyboard_button.h"
 
+#include "tinyusb.h"
+#include "class/hid/hid_device.h"
+
 
 /**
  * Brief:
@@ -524,4 +527,7 @@ void app_main(void)
     and the init key means which key you can distribute to the slave. */
     esp_ble_gap_set_security_param(ESP_BLE_SM_SET_INIT_KEY, &init_key, sizeof(uint8_t));
     esp_ble_gap_set_security_param(ESP_BLE_SM_SET_RSP_KEY, &rsp_key, sizeof(uint8_t));
+
+    keyboard_button_create(&cfg, &kbd_handle);
+    keyboard_button_register_cb(kbd_handle, cb_cfg, NULL);
 }

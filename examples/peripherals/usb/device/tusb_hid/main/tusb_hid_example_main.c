@@ -125,7 +125,7 @@ void app_main(void)
             if (send_hid_data) {
                 app_send_hid_demo();
             }
-            send_hid_data = !gpio_get_level(APP_BUTTON);
+            // send_hid_data = !gpio_get_level(APP_BUTTON);
         }
         vTaskDelay(pdMS_TO_TICKS(100));
     }
