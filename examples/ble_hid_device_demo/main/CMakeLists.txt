@@ -9,6 +9,7 @@ idf_component_register(SRCS "ble_hidd_demo_main.c"
                                 "managed_components/espressif__keyboard_button/include"
                                 "managed_components/espressif__esp_tinyusb/include"
                                 "managed_components/espressif__tinyusb/src"
+                                "components/freertos/FreeRTOS-Kernel/include/freertos"
                         )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-unused-const-variable)
