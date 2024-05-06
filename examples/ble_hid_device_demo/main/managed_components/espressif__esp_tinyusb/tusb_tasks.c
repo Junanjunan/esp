@@ -13,6 +13,10 @@
 #include "tinyusb.h"
 #include "tusb_tasks.h"
 
+#define CONFIG_TINYUSB_TASK_STACK_SIZE      4096
+#define CONFIG_TINYUSB_TASK_PRIORITY        5
+#define CONFIG_TINYUSB_TASK_AFFINITY        0x7FFFFFFF
+
 const static char *TAG = "tusb_tsk";
 static TaskHandle_t s_tusb_tskh;
 

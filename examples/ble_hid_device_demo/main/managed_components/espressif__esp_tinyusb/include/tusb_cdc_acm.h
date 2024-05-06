@@ -17,6 +17,7 @@ extern "C" {
 #include "tinyusb_types.h"
 #include "class/cdc/cdc.h"
 
+#define CONFIG_TINYUSB_CDC_ENABLED 1
 #if (CONFIG_TINYUSB_CDC_ENABLED != 1)
 #error "TinyUSB CDC driver must be enabled in menuconfig"
 #endif

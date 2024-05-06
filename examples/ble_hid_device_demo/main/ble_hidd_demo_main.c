@@ -69,6 +69,8 @@ static uint8_t hidd_service_uuid128[] = {
     0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0x12, 0x18, 0x00, 0x00,
 };
 
+#define TUSB_DESC_TOTAL_LEN      (TUD_CONFIG_DESC_LEN + CFG_TUD_HID * TUD_HID_DESC_LEN)
+
 /*
  * Supplement to the Bluetooth Core Specification
  * Source: https://www.bluetooth.com/specifications/specs/core-specification-supplement-9/
@@ -464,6 +466,41 @@ void hid_demo_task(void *pvParameters)
 }
 
 
+/**
+ * @brief HID report descriptor
+ *
+ * In this example we implement Keyboard HID device,
+ */
+const uint8_t hid_report_descriptor[] = {
+    TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(HID_ITF_PROTOCOL_KEYBOARD)),
+};
+
+/**
+ * @brief String descriptor
+ */
+const char* hid_string_descriptor[5] = {
+    // array of pointer to string descriptors
+    (char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
+    "TinyUSB",             // 1: Manufacturer
+    "TinyUSB Device",      // 2: Product
+    "123456",              // 3: Serials, should use chip ID
+    "Example HID interface",  // 4: HID
+};
+
+/**
+ * @brief Configuration descriptor
+ *
+ * This is a simple configuration descriptor that defines 1 configuration and 1 HID interface
+ */
+static const uint8_t hid_configuration_descriptor[] = {
+    // Configuration number, interface count, string index, total length, attribute, power in mA
+    TUD_CONFIG_DESCRIPTOR(1, 1, 0, TUSB_DESC_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
+
+    // Interface number, string index, boot protocol, report descriptor len, EP In address, size & polling interval
+    TUD_HID_DESCRIPTOR(0, 4, false, sizeof(hid_report_descriptor), 0x81, 16, 10),
+};
+
+
 void app_main(void)
 {
     esp_err_t ret;
@@ -530,4 +567,16 @@ void app_main(void)
 
     keyboard_button_create(&cfg, &kbd_handle);
     keyboard_button_register_cb(kbd_handle, cb_cfg, NULL);
+
+    ESP_LOGI(__func__, "USB initialization");
+    const tinyusb_config_t tusb_cfg = {
+        .device_descriptor = NULL,
+        .string_descriptor = hid_string_descriptor,
+        .string_descriptor_count = sizeof(hid_string_descriptor) / sizeof(hid_string_descriptor[0]),
+        .external_phy = false,
+        .configuration_descriptor = hid_configuration_descriptor,
+    };
+
+    ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
+    ESP_LOGI(__func__, "USB initialization DONE");
 }
