@@ -9,10 +9,13 @@
 #include "esp_event.h"
 #include "nvs_flash.h"
 #include "esp_log.h"
+#include "led_strip.h"
 
 #define ESP_CHANNEL         1
 #define LED_STRIP           8
 #define LED_STRIP_MAX_LEDS  1
+
+led_strip_handle_t led_strip;
 
 static uint8_t peer_mac [ESP_NOW_ETH_ALEN] = {0x24, 0x58, 0x7C, 0xCD, 0x93, 0x30};
 
@@ -35,6 +38,7 @@ static esp_err_t init_wifi(void)
 void recv_cb(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int data_len)
 {
     ESP_LOGI(TAG, "Data received: " MACSTR "%s", MAC2STR(esp_now_info->src_addr), data);
+    vTaskDelay(pdMS_TO_TICKS(10));
 }
 
 void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
@@ -47,6 +51,7 @@ void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
     {
         ESP_LOGE(TAG, "ESP_NOW_SEND_FAIL");
     }
+    vTaskDelay(pdMS_TO_TICKS(10));
 }
 
 static esp_err_t init_esp_now(void)
@@ -75,9 +80,72 @@ static esp_err_t esp_now_send_data(const uint8_t *peer_addr, const uint8_t *data
     return ESP_OK;
 }
 
+static esp_err_t init_led_strip(void)
+{
+    /* LED strip initialization with the GPIO and pixels number*/
+    led_strip_config_t strip_config = {
+        .strip_gpio_num = LED_STRIP, // The GPIO that connected to the LED strip's data line
+        .max_leds = LED_STRIP_MAX_LEDS, // The number of LEDs in the strip,
+        .led_pixel_format = LED_PIXEL_FORMAT_GRB, // Pixel format of your LED strip
+        .led_model = LED_MODEL_WS2812, // LED strip model
+        .flags.invert_out = false, // whether to invert the output signal (useful when your hardware has a level inverter)
+    };
+
+    led_strip_rmt_config_t rmt_config = {
+    #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+        .rmt_channel = 0,
+    #else
+        .clk_src = RMT_CLK_SRC_DEFAULT, // different clock source can lead to different power consumption
+        .resolution_hz = 10 * 1000 * 1000, // 10MHz
+        .flags.with_dma = false, // whether to enable the DMA feature
+    #endif
+    };
+    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
+
+    return ESP_OK;
+
+}
+
 void app_main(void)
 {
     ESP_ERROR_CHECK(init_wifi());
     ESP_ERROR_CHECK(init_esp_now());
     ESP_ERROR_CHECK(register_peer(peer_mac));
+    ESP_ERROR_CHECK(init_led_strip());
+
+    uint8_t dataR [] = "255|0|0";
+    uint8_t dataG [] = "0|255|0";
+    uint8_t dataB [] = "0|0|255";
+
+    uint8_t count = 0;
+
+    while (1)
+    {
+        count ++;
+        if (count > 2)
+        {
+            count = 0;
+        }
+
+        switch (count)
+        {
+            case 0:
+                esp_now_send_data(peer_mac, dataR, 32);
+                led_strip_set_pixel(led_strip, 0, 255, 0, 0);
+                break;
+            case 1:
+                esp_now_send_data(peer_mac, dataG, 32);
+                led_strip_set_pixel(led_strip, 0, 0, 255, 0);
+                break;
+            case 2:
+                esp_now_send_data(peer_mac, dataB, 32);
+                led_strip_set_pixel(led_strip, 0, 0, 0, 255);
+                break;
+            default:
+                break;
+        }
+
+        led_strip_refresh(led_strip);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
