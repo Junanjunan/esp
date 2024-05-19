@@ -26,8 +26,35 @@ static esp_err_t init_wifi(void)
     return ESP_OK;
 }
 
+void recv_cb(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int data_len)
+{
+    ESP_LOGI(TAG, "Data received: " MACSTR "%s", MAC2STR(esp_now_info->src_addr), data);
+}
+
+void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
+{
+    if(status == ESP_NOW_SEND_SUCCESS)
+    {
+        ESP_LOGI(TAG, "ESP_NOW_SEND_SUCCESS");
+    }
+    else
+    {
+        ESP_LOGE(TAG, "ESP_NOW_SEND_FAIL");
+    }
+}
+
+static esp_err_t init_esp_now(void)
+{
+    esp_now_init();
+    esp_now_register_recv_cb(recv_cb);
+    esp_now_register_send_cb(send_cb);
+
+    ESP_LOGI(TAG, "esp now init completed");
+    return ESP_OK;
+}
 
 void app_main(void)
 {
     ESP_ERROR_CHECK(init_wifi());
+    ESP_ERROR_CHECK(init_esp_now());
 }
