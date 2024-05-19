@@ -3,3 +3,6 @@ build/
 
 # Python
 venv/
+
+# Visual Studio Code
+.vscode/
