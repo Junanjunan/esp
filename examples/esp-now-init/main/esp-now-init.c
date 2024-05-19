@@ -69,6 +69,12 @@ static esp_err_t register_peer(uint8_t *peer_addr)
     return ESP_OK;
 }
 
+static esp_err_t esp_now_send_data(const uint8_t *peer_addr, const uint8_t *data, size_t len)
+{
+    esp_now_send(peer_addr, data, len);
+    return ESP_OK;
+}
+
 void app_main(void)
 {
     ESP_ERROR_CHECK(init_wifi());
