@@ -10,6 +10,12 @@
 #include "nvs_flash.h"
 #include "esp_log.h"
 
+#define ESP_CHANNEL         1
+#define LED_STRIP           8
+#define LED_STRIP_MAX_LEDS  1
+
+static uint8_t peer_mac [ESP_NOW_ETH_ALEN] = {0x24, 0x58, 0x7C, 0xCD, 0x93, 0x30};
+
 static const char * TAG = "esp_now_init";
 
 static esp_err_t init_wifi(void)
@@ -53,8 +59,19 @@ static esp_err_t init_esp_now(void)
     return ESP_OK;
 }
 
+static esp_err_t register_peer(uint8_t *peer_addr)
+{
+    esp_now_peer_info_t esp_now_peer_info = {};
+    memcpy(esp_now_peer_info.peer_addr, peer_addr, ESP_NOW_ETH_ALEN);
+    esp_now_peer_info.channel = ESP_CHANNEL;
+    esp_now_peer_info.ifidx = ESP_IF_WIFI_STA;
+    esp_now_add_peer(&esp_now_peer_info);
+    return ESP_OK;
+}
+
 void app_main(void)
 {
     ESP_ERROR_CHECK(init_wifi());
     ESP_ERROR_CHECK(init_esp_now());
+    ESP_ERROR_CHECK(register_peer(peer_mac));
 }
