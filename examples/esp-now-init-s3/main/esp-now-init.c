@@ -9,13 +9,12 @@
 #include "esp_event.h"
 #include "nvs_flash.h"
 #include "esp_log.h"
-#include "led_strip.h"
+#include "tinyusb_main.h"
 
 #define ESP_CHANNEL         1
 #define LED_STRIP           8
 #define LED_STRIP_MAX_LEDS  1
 
-led_strip_handle_t led_strip;
 
 static const char * TAG = "esp_now_init";
 
@@ -51,6 +50,7 @@ static esp_err_t init_esp_now(void)
 
 void app_main(void)
 {
-    ESP_ERROR_CHECK(init_wifi());
-    ESP_ERROR_CHECK(init_esp_now());
+    // ESP_ERROR_CHECK(init_wifi());
+    // ESP_ERROR_CHECK(init_esp_now());
+    tusb_main();
 }
