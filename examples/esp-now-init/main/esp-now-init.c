@@ -84,7 +84,7 @@ void app_main(void)
     ESP_ERROR_CHECK(init_esp_now());
     ESP_ERROR_CHECK(register_peer(peer_mac));
 
-    uint8_t dataR [] = "255|0|0";
+    uint8_t dataR [] = "10";
 
     while (1)
     {
