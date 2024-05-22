@@ -9,6 +9,7 @@
 #include "esp_event.h"
 #include "nvs_flash.h"
 #include "esp_log.h"
+#include "hid.h"
 
 #define ESP_CHANNEL         1
 #define LED_STRIP           8
@@ -93,10 +94,12 @@ void esp_now_main(void)
     uint8_t dataR [] = "255|0|0";
     uint8_t count = 0;
 
-    while (1)
-    {
-        esp_now_send_data(peer_mac, dataR, 32);
+    // while (1)
+    // {
+    //     esp_now_send_data(peer_mac, dataR, 32);
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+    //     vTaskDelay(pdMS_TO_TICKS(1000));
+    // }
+
+    keyboard_task();
 }
