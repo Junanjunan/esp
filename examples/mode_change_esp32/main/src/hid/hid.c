@@ -61,7 +61,12 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
 
     for (int i = 0; i < kbd_report.key_pressed_num; i++) {
         keycode = keycodes[kbd_report.key_data[i].output_index][kbd_report.key_data[i].input_index];
-        uint8_t keycode_array [6] = "19";
+
+        char temp [6];
+        uint8_t converted_data [6];
+        sprintf(temp, "%d", keycode);
+        memcpy(converted_data, temp, sizeof(temp));
+
         uint8_t key[6] = {keycode};
         if (current_mode == MODE_USB)
         {
@@ -73,10 +78,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         }
         else if (current_mode == MODE_WIRELESS)
         {
-            ESP_LOGI(__func__, "WIRELESS MODE_1, sending key-keycode: %d", keycode);
-            // ESP_LOGI(__func__, "WIRELESS MODE_1, sending key-key: %s", key[0]);
-            ESP_LOGI(__func__, "WIRELESS MODE_1, sending key-keycode_array: %s", keycode_array);
-            esp_now_send(peer_mac, &keycode, 32);
+            esp_now_send(peer_mac, converted_data, 32);
         }
     }
 }
