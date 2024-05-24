@@ -76,7 +76,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
             ESP_LOGI(__func__, "WIRELESS MODE_1, sending key-keycode: %d", keycode);
             // ESP_LOGI(__func__, "WIRELESS MODE_1, sending key-key: %s", key[0]);
             ESP_LOGI(__func__, "WIRELESS MODE_1, sending key-keycode_array: %s", keycode_array);
-            esp_now_send(peer_mac, keycode_array, 32);
+            esp_now_send(peer_mac, &keycode, 32);
         }
     }
 }
