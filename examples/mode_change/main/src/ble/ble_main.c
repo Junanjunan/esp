@@ -68,6 +68,65 @@ static uint8_t hidd_service_uuid128[] = {
 
 #define TUSB_DESC_TOTAL_LEN      (TUD_CONFIG_DESC_LEN + CFG_TUD_HID * TUD_HID_DESC_LEN)
 
+#define MAC_ADDR_LEN 6
+
+// MAC 주소 배열을 관리할 구조체
+typedef struct {
+    uint8_t **addresses;
+    size_t count;
+} MacAddressList;
+
+// MAC 주소 배열 초기화
+void init_mac_list(MacAddressList *list) {
+    list->addresses = NULL;
+    list->count = 0;
+}
+
+// MAC 주소 중복 검사
+bool is_mac_in_list(const MacAddressList *list, const uint8_t *address) {
+    for (size_t i = 0; i < list->count; i++) {
+        if (memcmp(list->addresses[i], address, MAC_ADDR_LEN) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// MAC 주소 추가
+bool add_mac_to_list(MacAddressList *list, const uint8_t *address) {
+    if (is_mac_in_list(list, address)) {
+        return false; // 중복된 주소는 추가하지 않음
+    }
+
+    // 새 주소를 저장할 공간 확보
+    uint8_t **new_addresses = realloc(list->addresses, (list->count + 1) * sizeof(uint8_t *));
+    if (new_addresses == NULL) {
+        return false; // 메모리 할당 실패
+    }
+    list->addresses = new_addresses;
+    list->addresses[list->count] = malloc(MAC_ADDR_LEN * sizeof(uint8_t));
+
+    if (list->addresses[list->count] == NULL) {
+        return false; // 메모리 할당 실패
+    }
+
+    // 새 주소 저장
+    memcpy(list->addresses[list->count], address, MAC_ADDR_LEN);
+    list->count++;
+
+    return true;
+}
+
+// MAC 주소 목록 해제
+void free_mac_list(MacAddressList *list) {
+    for (size_t i = 0; i < list->count; i++) {
+        free(list->addresses[i]);
+    }
+    free(list->addresses);
+}
+
+MacAddressList macList;
+
 
 /*
  * Supplement to the Bluetooth Core Specification
@@ -258,6 +317,24 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             break;
         case ESP_GAP_BLE_SCAN_RESULT_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_RESULT_EVT");
+            esp_ble_gap_cb_param_t *scan_result = (esp_ble_gap_cb_param_t *)param;
+            switch (scan_result->scan_rst.search_evt) {
+                case ESP_GAP_SEARCH_INQ_RES_EVT:
+                    add_mac_to_list(&macList, scan_result->scan_rst.bda);
+                    for (size_t i = 0; i < macList.count; i++) {
+                        for (size_t j = 0; j < MAC_ADDR_LEN; j++) {
+                            printf("%02x", macList.addresses[i][j]);
+                            if (j < MAC_ADDR_LEN - 1) printf(":");
+                        }
+                        printf("\n");
+                    }
+                    // ESP_LOGI(HID_DEMO_TAG, "Device found: %02x:%02x:%02x:%02x:%02x:%02x",
+                    //     scan_result->scan_rst.bda[0], scan_result->scan_rst.bda[1], scan_result->scan_rst.bda[2],
+                    //     scan_result->scan_rst.bda[3], scan_result->scan_rst.bda[4], scan_result->scan_rst.bda[5]);
+                    break;
+                default:
+                    break;
+            }
             break;
         case ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT");
@@ -471,6 +548,30 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     }
 }
 
+void show_bonded_devices(void)
+{
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+    ESP_LOGI(__func__, "Bonded devices number : %d\n", dev_num);
+
+    ESP_LOGI(__func__, "Bonded devices list : %d\n", dev_num);
+    for (int i = 0; i < dev_num; i++) {
+        esp_log_buffer_hex(__func__, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
+    }
+
+    free(dev_list);
+}
+
 
 void ble_main(void)
 {
@@ -537,6 +638,19 @@ void ble_main(void)
     ///register the callback function to the gap module
     esp_ble_gap_register_callback(gap_event_handler);
     esp_hidd_register_callbacks(hidd_event_callback);
+
+    init_mac_list(&macList);
+
+    esp_ble_scan_params_t ble_scan_params = {
+        .scan_type              = BLE_SCAN_TYPE_ACTIVE,
+        .own_addr_type          = BLE_ADDR_TYPE_PUBLIC,
+        .scan_filter_policy     = BLE_SCAN_FILTER_ALLOW_ALL,
+        .scan_interval          = 0x50,
+        .scan_window            = 0x30
+    };
+
+    esp_ble_gap_set_scan_params(&ble_scan_params);
+    esp_ble_gap_start_scanning(10);
 
     /* set the security iocap & auth_req & key size & init key response key parameters to the stack*/
     esp_ble_auth_req_t auth_req = ESP_LE_AUTH_BOND;     //bonding with peer device after authentication
