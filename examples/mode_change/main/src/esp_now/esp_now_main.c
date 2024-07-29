@@ -62,6 +62,8 @@ void recv_cb(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int 
     uint8_t converted_key = atoi((const char *)data);
     key[0] = converted_key;
 
+    ESP_LOGI(TAG, "Received key: %d", key[0]);
+
     tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
 }
 

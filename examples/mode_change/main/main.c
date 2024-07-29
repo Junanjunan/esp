@@ -6,6 +6,7 @@
 
 #include "mode_gpio.h"
 #include "tusb_main.h"
+#include "esp_now_main.h"
 
 
 void app_main() {
@@ -18,5 +19,6 @@ void app_main() {
       ret = nvs_flash_init();
     }
 
-    setup_mode_gpio(mode);
+    esp_now_main();
+    tusb_main();
 }
