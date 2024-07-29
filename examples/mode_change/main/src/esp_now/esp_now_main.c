@@ -58,13 +58,21 @@ void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
 
 void recv_cb(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int data_len)
 {
+    uint8_t modifier = data[0];
     uint8_t key[6] = {0};
-    uint8_t converted_key = atoi((const char *)data);
-    key[0] = converted_key;
+
+    // Convert the data from index 2 to 7 to char array
+    char key_str[7] = {0};
+    for (int i = 0; i < 6; i++) {
+        key_str[i] = data[i + 2];
+    }
+
+    uint8_t converted_key = (uint8_t)atoi(key_str); // Convert the char array to integer
+    key[0] = converted_key;                     // Assign the converted integer to the key array
 
     ESP_LOGI(TAG, "Received key: %d", key[0]);
 
-    tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+    tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
 }
 
 
