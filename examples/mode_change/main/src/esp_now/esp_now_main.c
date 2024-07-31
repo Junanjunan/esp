@@ -16,6 +16,8 @@
 #define LED_STRIP           8
 #define LED_STRIP_MAX_LEDS  1
 
+#define TUD_CONSUMER_CONTROL    3
+
 
 uint8_t peer_mac [ESP_NOW_ETH_ALEN] = {0x24, 0x58, 0x7C, 0xDE, 0x55, 0x5C}; // MAC address of the peer device: esp32
 
@@ -72,7 +74,11 @@ void recv_cb(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int 
 
     ESP_LOGI(TAG, "Received key: %d", key[0]);
 
-    tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
+    if (data[1] == 0) {
+        tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
+    } else {
+        tud_hid_report(TUD_CONSUMER_CONTROL, &converted_key, 2);
+    }
 }
 
 
