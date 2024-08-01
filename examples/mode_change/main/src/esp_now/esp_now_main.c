@@ -104,6 +104,7 @@ static esp_err_t register_peer(uint8_t *peer_addr)
 
 void esp_now_main(void)
 {
+    keyboard_task();
     ESP_ERROR_CHECK(init_wifi());
     ESP_ERROR_CHECK(init_esp_now());
     ESP_ERROR_CHECK(register_peer(peer_mac));
