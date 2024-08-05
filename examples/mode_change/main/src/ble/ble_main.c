@@ -51,7 +51,7 @@ static bool sec_conn = false;
 
 static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param);
 
-#define HIDD_DEVICE_NAME            "ESP32 BLE Keyboard"
+#define HIDD_DEVICE_NAME            "HID"
 #define HID_APPEARANCE_KEYBOARD     0x03C1
 static uint8_t hidd_service_uuid128[] = {
     /* LSB <--------------------------------------------------------------------------------> MSB */
@@ -82,6 +82,7 @@ bt_host_info_t empty_host = {
 
 char bda_str[18];
 
+static uint8_t manufacturer_data[32];  // Adjust size as needed
 
 /*
  * Supplement to the Bluetooth Core Specification
@@ -96,6 +97,7 @@ static esp_ble_adv_data_t hidd_adv_data = {
     .min_interval = 0x0006, //slave connection min interval, Time = min_interval * 1.25 msec
     .max_interval = 0x0010, //slave connection max interval, Time = max_interval * 1.25 msec
     .appearance = HID_APPEARANCE_KEYBOARD,
+    // .manufacturer_len = sizeof(HIDD_DEVICE_NAME),
     .manufacturer_len = 0,
     .p_manufacturer_data =  NULL,
     .service_data_len = 0,
@@ -114,6 +116,13 @@ esp_ble_adv_params_t hidd_adv_params = {
     .channel_map        = ADV_CHNL_ALL,
     .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
 };
+
+
+static void setup_manufacturer_data() {
+    strcpy((char *)manufacturer_data, HIDD_DEVICE_NAME);
+    manufacturer_data[strlen(HIDD_DEVICE_NAME)] = '\0';
+    hidd_adv_data.p_manufacturer_data = manufacturer_data;
+}
 
 
 int32_t get_saved_ble_idx() {
@@ -550,114 +559,6 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                 xTaskCreate(modify_removed_status_task, "modify_removed_status_task", 2048, NULL, 5, NULL);
             }
             break;
-        case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_START_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_KEY_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_KEY_EVT");
-            break;
-        case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PASSKEY_NOTIF_EVT");
-            break;
-        case ESP_GAP_BLE_PASSKEY_REQ_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PASSKEY_REQ_EVT");
-            break;
-        case ESP_GAP_BLE_OOB_REQ_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_OOB_REQ_EVT");
-            break;
-        case ESP_GAP_BLE_LOCAL_IR_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_LOCAL_IR_EVT");
-            break;
-        case ESP_GAP_BLE_LOCAL_ER_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_LOCAL_ER_EVT");
-            break;
-        case ESP_GAP_BLE_NC_REQ_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_NC_REQ_EVT");
-            break;
-        case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_SET_STATIC_RAND_ADDR_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_STATIC_RAND_ADDR_EVT");
-            break;
-        case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT");
-            break;
-        case ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_SET_LOCAL_PRIVACY_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_LOCAL_PRIVACY_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_GET_BOND_DEV_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_GET_BOND_DEV_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_UPDATE_DUPLICATE_EXCEPTIONAL_LIST_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_UPDATE_DUPLICATE_EXCEPTIONAL_LIST_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_SET_CHANNELS_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_CHANNELS_EVT");
-            break;
-        case ESP_GAP_BLE_READ_PHY_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_READ_PHY_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_SET_PREFERRED_DEFAULT_PHY_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_PREFERRED_DEFAULT_PHY_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_SET_PREFERRED_PHY_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_PREFERRED_PHY_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_PHY_UPDATE_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_PHY_UPDATE_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_SCAN_TIMEOUT_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_TIMEOUT_EVT");
-            break;
-        case ESP_GAP_BLE_ADV_TERMINATED_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_TERMINATED_EVT");
-            break;
-        case ESP_GAP_BLE_SCAN_REQ_RECEIVED_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_REQ_RECEIVED_EVT");
-            break;
-        case ESP_GAP_BLE_CHANNEL_SELECT_ALGORITHM_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_CHANNEL_SELECT_ALGORITHM_EVT");
-            break;
-        case ESP_GAP_BLE_SC_OOB_REQ_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SC_OOB_REQ_EVT");
-            break;
-        case ESP_GAP_BLE_SC_CR_LOC_OOB_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SC_CR_LOC_OOB_EVT");
-            break;
-        case ESP_GAP_BLE_GET_DEV_NAME_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_GET_DEV_NAME_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_SET_PAST_PARAMS_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SET_PAST_PARAMS_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_DTM_TEST_UPDATE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_DTM_TEST_UPDATE_EVT");
-            break;
-        case ESP_GAP_BLE_ADV_CLEAR_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_CLEAR_COMPLETE_EVT");
-            break;
-        case ESP_GAP_BLE_EVT_MAX:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_EVT_MAX");
-            break;
         default:
             break;
     }
@@ -666,6 +567,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 
 void ble_main(void)
 {
+    setup_manufacturer_data();
+
     esp_err_t ret;
 
     // Initialize NVS.
